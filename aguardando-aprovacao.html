@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#0F4C5C">
+  <meta name="robots" content="noindex">
+  <title>Conta em análise — LIDMED HUB</title>
+
+  <link rel="icon" href="/assets/icons/favicon.svg" type="image/svg+xml">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+  <link rel="stylesheet" href="/css/tokens.css">
+  <link rel="stylesheet" href="/css/reset.css">
+  <link rel="stylesheet" href="/css/global.css">
+  <link rel="stylesheet" href="/css/pages/auth.css">
+</head>
+<body>
+  <main class="auth-shell">
+    <div class="auth-card status-card">
+      <div class="auth-brand">
+        <a href="/" class="brand" aria-label="LIDMED HUB">
+          <span class="brand-mark" aria-hidden="true">L</span>
+          <span>LIDMED HUB</span>
+        </a>
+      </div>
+
+      <div id="icon" class="status-icon" aria-hidden="true">⏳</div>
+      <h1 id="title" class="auth-title">Conta em análise</h1>
+      <p id="message" class="auth-subtitle">
+        Sua conta foi criada com sucesso. Aguarde a aprovação de um administrador da liga
+        para acessar a plataforma.
+      </p>
+
+      <div id="alert-slot" aria-live="polite"></div>
+
+      <div class="row" style="justify-content:center; gap: var(--space-2);">
+        <button id="refresh-btn" class="btn btn-primary">Verificar status</button>
+        <button id="logout-btn" class="btn btn-ghost">Sair</button>
+      </div>
+
+      <div class="status-meta">
+        <div>Conectado como <strong id="user-email">—</strong></div>
+        <div id="user-role">—</div>
+      </div>
+    </div>
+  </main>
+
+  <script type="module">
+    import { requireAuth, loadProfile, clearProfileCache } from "/js/guards.js";
+    import { logout } from "/js/auth.js";
+    import { toast } from "/js/ui/toast.js";
+
+    const iconEl = document.getElementById("icon");
+    const titleEl = document.getElementById("title");
+    const msgEl = document.getElementById("message");
+    const emailEl = document.getElementById("user-email");
+    const roleEl = document.getElementById("user-role");
+    const refreshBtn = document.getElementById("refresh-btn");
+    const logoutBtn = document.getElementById("logout-btn");
+
+    const ROLE_LABEL = { student: "Estudante", professor: "Professor / Preceptor", admin: "Administrador" };
+
+    let _user = null;
+    let _pollTimer = null;
+
+    function applyProfile(profile) {
+      if (!profile) return;
+      emailEl.textContent = profile.email || "—";
+      roleEl.textContent = ROLE_LABEL[profile.role] || profile.role || "—";
+
+      if (profile.status === "approved") {
+        iconEl.textContent = "✓";
+        iconEl.classList.add("is-approved");
+        iconEl.classList.remove("is-rejected");
+        titleEl.textContent = "Aprovado!";
+        msgEl.textContent = "Sua conta foi aprovada. Redirecionando…";
+        stopPolling();
+        setTimeout(() => location.replace("/dashboard.html"), 800);
+        return;
+      }
+      if (profile.status === "rejected") {
+        iconEl.textContent = "✕";
+        iconEl.classList.add("is-rejected");
+        iconEl.classList.remove("is-approved");
+        titleEl.textContent = "Acesso não aprovado";
+        msgEl.textContent =
+          "Sua solicitação de acesso foi rejeitada. Em caso de dúvida, contate a administração da liga.";
+        stopPolling();
+        return;
+      }
+      if (profile.status === "suspended") {
+        iconEl.textContent = "!";
+        iconEl.classList.add("is-rejected");
+        iconEl.classList.remove("is-approved");
+        titleEl.textContent = "Conta suspensa";
+        msgEl.textContent = "Sua conta está suspensa. Contate a administração da liga.";
+        stopPolling();
+        return;
+      }
+      // pending
+      iconEl.textContent = "⏳";
+      iconEl.classList.remove("is-approved", "is-rejected");
+      titleEl.textContent = "Conta em análise";
+      msgEl.textContent =
+        "Sua conta foi criada com sucesso. Aguarde a aprovação de um administrador da liga para acessar a plataforma.";
+    }
+
+    async function refresh(silent = false) {
+      if (!_user) return;
+      clearProfileCache(_user.uid);
+      try {
+        const profile = await loadProfile(_user, { force: true });
+        applyProfile(profile);
+        if (!silent) toast("Status atualizado.", { type: "info", duration: 2000 });
+      } catch (err) {
+        console.error(err);
+        if (!silent) toast("Não foi possível verificar agora.", { type: "warning" });
+      }
+    }
+
+    function startPolling() {
+      stopPolling();
+      _pollTimer = setInterval(() => refresh(true), 30000);
+    }
+    function stopPolling() {
+      if (_pollTimer) { clearInterval(_pollTimer); _pollTimer = null; }
+    }
+
+    (async () => {
+      const ctx = await requireAuth({ force: true });
+      if (!ctx) return;
+      _user = ctx.user;
+      applyProfile(ctx.profile);
+      // Se ainda estiver pendente, inicia polling leve (1 read / 30s).
+      if (!ctx.profile || ctx.profile.status === "pending") startPolling();
+    })();
+
+    refreshBtn.addEventListener("click", () => refresh(false));
+
+    logoutBtn.addEventListener("click", async () => {
+      stopPolling();
+      try { await logout(); } finally { location.replace("/login.html"); }
+    });
+  </script>
+</body>
+</html>

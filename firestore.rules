@@ -3,31 +3,63 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    // Helpers globais
+    /* ===== Helpers ===== */
+
     function isSignedIn() {
       return request.auth != null;
     }
 
-    function userDoc() {
+    function isSelf(uid) {
+      return isSignedIn() && request.auth.uid == uid;
+    }
+
+    // Verifica se o usuário atual é admin aprovado.
+    // Custa 1 read extra por avaliação. Aceitável para o volume do MVP.
+    function myUserDoc() {
       return get(/databases/$(database)/documents/users/$(request.auth.uid)).data;
     }
 
-    function isApproved() {
-      return isSignedIn() && userDoc().status == 'approved';
-    }
-
     function isAdmin() {
-      return isSignedIn() && userDoc().role == 'admin' && userDoc().status == 'approved';
+      return isSignedIn()
+        && myUserDoc().role == 'admin'
+        && myUserDoc().status == 'approved';
     }
 
-    // Users: o dono lê o próprio doc; criação é permitida a partir do cadastro.
+    /* ===== users ===== */
+
     match /users/{uid} {
-      allow read: if isSignedIn() && request.auth.uid == uid;
-      allow create: if isSignedIn() && request.auth.uid == uid;
-      allow update, delete: if false; // será liberado por fase
+      // Leitura: o próprio ou admin.
+      allow read: if isSelf(uid) || isAdmin();
+
+      // Criação: apenas o próprio usuário, com campos whitelistados e valores controlados.
+      allow create: if isSelf(uid)
+        && request.resource.data.keys().hasOnly([
+             'uid', 'email', 'displayName', 'publicName',
+             'photoURL', 'role', 'status', 'createdAt'
+           ])
+        && request.resource.data.uid == uid
+        && request.resource.data.email is string
+        && request.resource.data.email.size() >= 5
+        && request.resource.data.email.size() <= 254
+        && request.resource.data.displayName is string
+        && request.resource.data.displayName.size() >= 2
+        && request.resource.data.displayName.size() <= 120
+        && request.resource.data.publicName is string
+        && request.resource.data.publicName.size() >= 2
+        && request.resource.data.publicName.size() <= 30
+        && request.resource.data.photoURL is string
+        && request.resource.data.photoURL.size() <= 500
+        && request.resource.data.role in ['student', 'professor']
+        && request.resource.data.status == 'pending'
+        && request.resource.data.createdAt is timestamp;
+
+      // Atualização e remoção: por enquanto, bloqueadas.
+      // Serão liberadas em fases posteriores (perfil próprio + admin).
+      allow update, delete: if false;
     }
 
-    // Tudo o mais negado por padrão até ser implementado.
+    /* ===== Negado por padrão ===== */
+
     match /{document=**} {
       allow read, write: if false;
     }

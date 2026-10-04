@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#0F4C5C">
+  <meta name="description" content="Entrar no LIDMED HUB.">
+  <title>Entrar — LIDMED HUB</title>
+
+  <link rel="icon" href="/assets/icons/favicon.svg" type="image/svg+xml">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+  <link rel="stylesheet" href="/css/tokens.css">
+  <link rel="stylesheet" href="/css/reset.css">
+  <link rel="stylesheet" href="/css/global.css">
+  <link rel="stylesheet" href="/css/pages/auth.css">
+</head>
+<body>
+  <main class="auth-shell">
+    <div class="auth-card">
+      <div class="auth-brand">
+        <a href="/" class="brand" aria-label="LIDMED HUB, ir para a página inicial">
+          <span class="brand-mark" aria-hidden="true">L</span>
+          <span>LIDMED HUB</span>
+        </a>
+      </div>
+
+      <h1 class="auth-title">Entrar</h1>
+      <p class="auth-subtitle">Acesse com sua conta institucional ou pessoal.</p>
+
+      <div id="alert-slot" aria-live="polite"></div>
+
+      <form id="login-form" novalidate>
+        <div class="field">
+          <label for="email">E-mail <span class="required" aria-hidden="true">*</span></label>
+          <input id="email" name="email" type="email" autocomplete="email" required>
+          <span class="field-error" data-error-for="email"></span>
+        </div>
+
+        <div class="field">
+          <label for="password">Senha <span class="required" aria-hidden="true">*</span></label>
+          <input id="password" name="password" type="password" autocomplete="current-password" required minlength="6">
+          <span class="field-error" data-error-for="password"></span>
+        </div>
+
+        <div class="row-between" style="margin-bottom: var(--space-5);">
+          <small><a href="#" id="forgot-link">Esqueci minha senha</a></small>
+        </div>
+
+        <button type="submit" class="btn btn-primary btn-block btn-lg" id="submit-btn">Entrar</button>
+      </form>
+
+      <div class="auth-divider" role="separator" aria-hidden="true">ou</div>
+
+      <button type="button" class="btn btn-secondary btn-block btn-lg" id="google-btn">
+        Continuar com Google
+      </button>
+
+      <p class="auth-footer">
+        Não tem conta? <a href="/cadastro.html"><strong>Criar conta</strong></a>
+      </p>
+    </div>
+  </main>
+
+  <script type="module">
+    import { loginEmail, loginGoogle, resetPassword, getAuthErrorMessage } from "/js/auth.js";
+    import { waitForAuth, loadProfile } from "/js/guards.js";
+    import { toast } from "/js/ui/toast.js";
+
+    const alertSlot = document.getElementById("alert-slot");
+    const form = document.getElementById("login-form");
+    const submitBtn = document.getElementById("submit-btn");
+    const googleBtn = document.getElementById("google-btn");
+    const forgotLink = document.getElementById("forgot-link");
+
+    // Mensagens de estado vindas da URL
+    const params = new URLSearchParams(location.search);
+    if (params.get("rejected") === "1") {
+      alertSlot.innerHTML =
+        '<div class="alert alert-danger" role="alert" style="margin-bottom:var(--space-4)">Sua solicitação de acesso foi rejeitada. Em caso de dúvida, contate a administração da liga.</div>';
+    } else if (params.get("suspended") === "1") {
+      alertSlot.innerHTML =
+        '<div class="alert alert-danger" role="alert" style="margin-bottom:var(--space-4)">Sua conta está suspensa. Contate a administração.</div>';
+    }
+
+    // Se já autenticado, redireciona conforme status.
+    (async () => {
+      const user = await waitForAuth();
+      if (!user) return;
+      const profile = await loadProfile(user, { force: true });
+      if (profile?.status === "approved") location.replace("/dashboard.html");
+      else location.replace("/aguardando-aprovacao.html");
+    })();
+
+    function setFieldError(name, message) {
+      const el = document.querySelector(`[data-error-for="${name}"]`);
+      if (el) el.textContent = message || "";
+    }
+
+    function clearErrors() {
+      document.querySelectorAll(".field-error").forEach((el) => (el.textContent = ""));
+    }
+
+    function routeAfterLogin() {
+      return loadProfile({ uid: authUid() }, { force: true }).catch(() => null);
+    }
+
+    // Helper: obtém o uid atual sem importar auth aqui.
+    function authUid() {
+      // lê do objeto de auth carregado dinamicamente abaixo
+      return (window.__lidmed_uid || null);
+    }
+
+    // Alternativa simples: após login, usamos waitForAuth para pegar uid.
+    async function postLoginRedirect() {
+      const user = await waitForAuth();
+      if (!user) { location.replace("/login.html"); return; }
+      const profile = await loadProfile(user, { force: true });
+      if (profile?.status === "approved") location.replace("/dashboard.html");
+      else location.replace("/aguardando-aprovacao.html");
+    }
+
+    form.addEventListener("submit", async (ev) => {
+      ev.preventDefault();
+      clearErrors();
+      const fd = new FormData(form);
+      const email = String(fd.get("email") || "").trim();
+      const password = String(fd.get("password") || "");
+
+      let ok = true;
+      if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+        setFieldError("email", "Informe um e-mail válido.");
+        ok = false;
+      }
+      if (!password || password.length < 6) {
+        setFieldError("password", "A senha deve ter ao menos 6 caracteres.");
+        ok = false;
+      }
+      if (!ok) return;
+
+      submitBtn.disabled = true;
+      const original = submitBtn.textContent;
+      submitBtn.textContent = "Entrando…";
+
+      try {
+        await loginEmail(email, password);
+        await postLoginRedirect();
+      } catch (err) {
+        console.error(err);
+        toast(getAuthErrorMessage(err?.code), { type: "danger" });
+        submitBtn.disabled = false;
+        submitBtn.textContent = original;
+      }
+    });
+
+    googleBtn.addEventListener("click", async () => {
+      googleBtn.disabled = true;
+      const original = googleBtn.textContent;
+      googleBtn.textContent = "Conectando…";
+      try {
+        await loginGoogle();
+        await postLoginRedirect();
+      } catch (err) {
+        console.error(err);
+        toast(getAuthErrorMessage(err?.code), { type: "danger" });
+        googleBtn.disabled = false;
+        googleBtn.textContent = original;
+      }
+    });
+
+    forgotLink.addEventListener("click", async (ev) => {
+      ev.preventDefault();
+      const email = String(new FormData(form).get("email") || "").trim();
+      if (!email) {
+        toast("Digite seu e-mail acima para recuperar a senha.", { type: "warning" });
+        return;
+      }
+      try {
+        await resetPassword(email);
+        toast("Se o e-mail estiver cadastrado, enviamos as instruções.", { type: "success" });
+      } catch (err) {
+        console.error(err);
+        toast(getAuthErrorMessage(err?.code), { type: "danger" });
+      }
+    });
+  </script>
+</body>
+</html>
