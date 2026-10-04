@@ -1,0 +1,35 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Helpers globais
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function userDoc() {
+      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data;
+    }
+
+    function isApproved() {
+      return isSignedIn() && userDoc().status == 'approved';
+    }
+
+    function isAdmin() {
+      return isSignedIn() && userDoc().role == 'admin' && userDoc().status == 'approved';
+    }
+
+    // Users: o dono lê o próprio doc; criação é permitida a partir do cadastro.
+    match /users/{uid} {
+      allow read: if isSignedIn() && request.auth.uid == uid;
+      allow create: if isSignedIn() && request.auth.uid == uid;
+      allow update, delete: if false; // será liberado por fase
+    }
+
+    // Tudo o mais negado por padrão até ser implementado.
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

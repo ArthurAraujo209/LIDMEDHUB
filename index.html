@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#0F4C5C">
+  <meta name="description" content="LIDMED HUB — plataforma acadêmica de casos clínicos progressivos para estudantes e professores de Medicina.">
+  <title>LIDMED HUB — Casoteca Clínica Interativa</title>
+
+  <link rel="icon" href="/assets/icons/favicon.svg" type="image/svg+xml">
+  <link rel="manifest" href="/manifest.webmanifest">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+  <link rel="stylesheet" href="/css/tokens.css">
+  <link rel="stylesheet" href="/css/reset.css">
+  <link rel="stylesheet" href="/css/global.css">
+</head>
+<body>
+  <header class="app-header">
+    <div class="container">
+      <a href="/" class="brand" aria-label="LIDMED HUB, ir para a página inicial">
+        <span class="brand-mark" aria-hidden="true">L</span>
+        <span>LIDMED HUB</span>
+      </a>
+      <nav class="row" aria-label="Navegação principal">
+        <a href="/login.html" class="btn btn-ghost">Entrar</a>
+        <a href="/cadastro.html" class="btn btn-primary">Criar conta</a>
+      </nav>
+    </div>
+  </header>
+
+  <main>
+    <section class="container" style="padding-block: var(--space-16) var(--space-12);">
+      <div class="stack-lg" style="max-width: 760px;">
+        <span class="badge badge-primary">Casoteca Clínica Interativa</span>
+        <h1>Raciocínio clínico progressivo, caso a caso.</h1>
+        <p class="text-muted" style="font-size: var(--fs-md);">
+          Uma plataforma acadêmica para estudantes e professores de Medicina criarem,
+          resolverem e discutirem casos clínicos anonimizados com revelação progressiva
+          de informações e sistema de hipóteses.
+        </p>
+        <div class="row">
+          <a href="/cadastro.html" class="btn btn-primary btn-lg">Começar agora</a>
+          <a href="/login.html" class="btn btn-secondary btn-lg">Já tenho conta</a>
+        </div>
+      </div>
+    </section>
+
+    <section class="container" style="padding-block: var(--space-10);">
+      <div class="stack-lg">
+        <h2>Como funciona</h2>
+        <div class="grid-cards">
+          <article class="card stack-sm">
+            <span class="badge">01 · Progressão</span>
+            <h3>Informação revelada em etapas</h3>
+            <p class="text-muted">Cada caso avança como uma consulta real: você recebe dados clínicos gradualmente e formula hipóteses a cada passo.</p>
+          </article>
+          <article class="card stack-sm">
+            <span class="badge">02 · Hipóteses</span>
+            <h3>Raciocine, não adivinhe</h3>
+            <p class="text-muted">Envie hipóteses a qualquer momento, com tentativas ilimitadas, sem que o diagnóstico seja revelado antes da hora.</p>
+          </article>
+          <article class="card stack-sm">
+            <span class="badge">03 · Dicas</span>
+            <h3>Ajuda com custo</h3>
+            <p class="text-muted">Precisa de um empurrão? Solicite dicas — elas reduzem a pontuação final, mas nunca a zeram.</p>
+          </article>
+          <article class="card stack-sm">
+            <span class="badge">04 · Colaboração</span>
+            <h3>Todos criam</h3>
+            <p class="text-muted">Alunos e professores publicam casos anonimizados, avaliam e comentam. Uma casoteca viva, feita pela liga.</p>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section class="container" style="padding-block: var(--space-10);">
+      <div class="card card-lg stack">
+        <h2>Ética e privacidade em primeiro lugar</h2>
+        <p class="text-muted">
+          Nenhum dado identificável de paciente é permitido. Todo caso passa por declaração
+          explícita de anonimização no momento da publicação, e a plataforma alerta sobre
+          padrões sensíveis (CPF, telefone, e-mail, iniciais, números de prontuário).
+          A responsabilidade final pela anonimização é do autor.
+        </p>
+      </div>
+    </section>
+  </main>
+
+  <footer class="container" style="padding-block: var(--space-8); border-top: 1px solid var(--color-border); margin-top: var(--space-12);">
+    <div class="row-between">
+      <small>© <span id="year"></span> LIDMED HUB · Liga Acadêmica</small>
+      <small class="text-subtle">Uso acadêmico · pt-BR</small>
+    </div>
+  </footer>
+
+  <style>
+    .grid-cards {
+      display: grid;
+      gap: var(--space-4);
+      grid-template-columns: 1fr;
+    }
+    @media (min-width: 720px) {
+      .grid-cards { grid-template-columns: 1fr 1fr; }
+    }
+  </style>
+
+  <script type="module">
+    document.getElementById('year').textContent = new Date().getFullYear();
+  </script>
+</body>
+</html>
