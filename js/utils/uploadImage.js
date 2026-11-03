@@ -22,6 +22,12 @@ export async function uploadImage(blob, user, purpose) {
   try {
     result = await response.json();
   } catch (error) {
+    if (response.status === 404 || response.status === 405) {
+      throw new Error(
+        `A função de upload não está disponível neste deploy (HTTP ${response.status}). ` +
+        "Publique a pasta api/ em uma plataforma que execute funções serverless, como a Vercel."
+      );
+    }
     throw new Error("O serviço de imagens não está disponível neste ambiente.");
   }
 

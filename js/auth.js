@@ -11,6 +11,7 @@ import {
   doc,
   getDoc,
   setDoc,
+  writeBatch,
   serverTimestamp
 } from "./firebase.js";
 
@@ -67,6 +68,7 @@ function buildUserDoc(user, { role = "student", name } = {}) {
     displayName,
     publicName: pub,
     photoURL: user.photoURL || "",
+    photoURLSource: user.photoURL ? "google" : "",
     role: safeRole,
     status: "pending",
     stats: {
@@ -148,8 +150,27 @@ export async function loginEmail(email, password) {
 
 export async function loginGoogle() {
   const cred = await signInWithPopup(auth, googleProvider);
-  // Se for o primeiro login via Google, cria o doc com role default 'student'.
-  await ensureUserDoc(cred.user);
+  const profile = await ensureUserDoc(cred.user);
+  const googlePhotoURL = cred.user.photoURL || "";
+
+  if (
+    googlePhotoURL &&
+    profile.photoURLSource !== "custom" &&
+    profile.photoURL !== googlePhotoURL
+  ) {
+    const batch = writeBatch(db);
+    batch.set(doc(db, "users", cred.user.uid), {
+      photoURL: googlePhotoURL,
+      photoURLSource: "google",
+      updatedAt: serverTimestamp()
+    }, { merge: true });
+    batch.set(doc(db, "publicProfiles", cred.user.uid), {
+      photoURL: googlePhotoURL,
+      updatedAt: serverTimestamp()
+    }, { merge: true });
+    await batch.commit();
+  }
+
   return cred.user;
 }
 

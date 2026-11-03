@@ -26,6 +26,7 @@ export async function updateProfile(uid, updates) {
       throw new Error("URL da foto muito longa (máx. 500 caracteres)");
     }
     allowed.photoURL = url;
+    allowed.photoURLSource = "custom";
   }
 
   if ("preferences" in updates && updates.preferences) {

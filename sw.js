@@ -1,4 +1,4 @@
-const VERSION = 'v1.0.5';
+const VERSION = 'v1.0.6';
 const CACHE_NAME = `lidmed-hub-${VERSION}`;
 
 // Arquivos para cache offline
@@ -104,6 +104,8 @@ self.addEventListener('fetch', (event) => {
 
   // Imagens e outros assets: Cache-first
   if (request.destination === 'image') {
+    if (url.origin !== self.location.origin) return;
+
     event.respondWith(
       caches.match(request).then((cached) => {
         if (cached) return cached;

@@ -67,6 +67,7 @@ firebase deploy --only firestore:rules,firestore:indexes
 - Output directory: `.` (raiz).
 - Configure `IMGBB_API_KEY` nas variáveis de ambiente do projeto Vercel. A chave é usada apenas pela função `/api/upload-image` e não deve ser colocada no frontend ou no repositório.
 - Após configurar a variável, faça um novo deploy para ativar a função de upload.
+- O arquivo `api/upload-image.js` precisa estar incluído no deploy. Se o upload responder HTTP 404 ou 405, confirme que o projeto foi publicado na Vercel com a raiz do repositório como diretório do projeto e que a pasta `api/` foi enviada. Hospedagem somente estática não executa essa função. Configure a chave também no ambiente Production/Preview usado pelo deploy e publique novamente.
 - Para testar localmente, copie `.env.local.example` para `.env.local`, substitua o valor de `IMGBB_API_KEY` pela sua chave e rode `npx vercel dev` na raiz. A chave local não deve ser compartilhada nem adicionada ao Git; `.env.local` já está no `.gitignore`. O servidor HTTP estático não executa a função `/api/upload-image`.
 - O upload exige uma conta aprovada. Imagens clínicas exigem confirmação de anonimização. JPEG, PNG e WebP de até 3 MB abrem o editor de recorte/zoom e são reprocessadas no navegador para remover metadados. Fotos de perfil também podem ser recortadas antes do envio. O ImgBB é externo e as imagens hospedadas ficam publicamente acessíveis. Nunca envie imagens identificáveis de pacientes.
 
