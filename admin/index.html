@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#0F4C5C">
+  <meta name="robots" content="noindex">
+  <title>Dashboard Admin — LIDMED HUB</title>
+
+  <link rel="icon" href="/assets/icons/favicon.svg" type="image/svg+xml">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+  <script src="/js/ui/theme.js"></script>
+  <link rel="stylesheet" href="/css/tokens.css">
+  <link rel="stylesheet" href="/css/reset.css">
+  <link rel="stylesheet" href="/css/global.css">
+  <link rel="stylesheet" href="/css/pages/admin.css">
+  <script type="module" src="/js/ui/site-nav.js"></script>
+</head>
+<body class="admin-shell">
+  <header class="admin-header">
+    <div class="container">
+      <div>
+        <a href="/dashboard.html" class="brand">
+          <span class="brand-mark">L</span>
+          <span>LIDMED HUB</span>
+        </a>
+        <h1 class="admin-title">Painel Administrativo</h1>
+      </div>
+      <div class="admin-nav">
+        <a href="/admin/index.html" class="btn btn-primary btn-sm">Dashboard</a>
+        <a href="/admin/usuarios.html" class="btn btn-ghost btn-sm">Usuários</a>
+        <a href="/admin/casos.html" class="btn btn-ghost btn-sm">Casos</a>
+        <a href="/admin/categorias.html" class="btn btn-ghost btn-sm">Categorias</a>
+        <a href="/dashboard.html" class="btn btn-ghost btn-sm">Voltar</a>
+      </div>
+    </div>
+  </header>
+
+  <div class="admin-content container">
+    <div class="stats-grid" style="margin-bottom: var(--space-6);">
+      <div class="stat-card">
+        <div class="stat-label">Total de Usuários</div>
+        <div class="stat-value" id="total-users">-</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Usuários Pendentes</div>
+        <div class="stat-value" id="pending-users">-</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Total de Casos</div>
+        <div class="stat-value" id="total-cases">-</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Casos Públicos</div>
+        <div class="stat-value" id="public-cases">-</div>
+      </div>
+    </div>
+
+    <h3 style="margin-bottom: var(--space-4);">Ações Rápidas</h3>
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: var(--space-4);">
+      <a href="/admin/usuarios.html?status=pending" class="card" style="text-decoration: none; padding: var(--space-4);">
+        <h4 style="margin-bottom: var(--space-2);">👥 Aprovar Usuários</h4>
+        <p class="text-sm text-muted">Gerenciar solicitações de cadastro</p>
+      </a>
+      <a href="/admin/casos.html" class="card" style="text-decoration: none; padding: var(--space-4);">
+        <h4 style="margin-bottom: var(--space-2);">📋 Moderar Casos</h4>
+        <p class="text-sm text-muted">Revisar casos publicados</p>
+      </a>
+      <a href="/admin/categorias.html" class="card" style="text-decoration: none; padding: var(--space-4);">
+        <h4 style="margin-bottom: var(--space-2);">🏷 Gerenciar Categorias</h4>
+        <p class="text-sm text-muted">Adicionar ou editar especialidades</p>
+      </a>
+    </div>
+  </div>
+
+  <script type="module">
+    import { requireAdmin } from "/js/guards.js";
+    import { listUsers } from "/js/admin.js";
+    import { db, collection, getDocs, query, where } from "/js/firebase.js";
+
+    (async () => {
+      const ctx = await requireAdmin();
+      if (!ctx) return;
+
+      try {
+        // Total de usuários
+        const allUsers = await listUsers({});
+        document.getElementById("total-users").textContent = allUsers.length;
+
+        // Usuários pendentes
+        const pendingUsers = allUsers.filter(u => u.status === "pending");
+        document.getElementById("pending-users").textContent = pendingUsers.length;
+
+        // Total de casos
+        const casesSnap = await getDocs(collection(db, "cases"));
+        document.getElementById("total-cases").textContent = casesSnap.size;
+
+        // Casos públicos
+        const publicQ = query(
+          collection(db, "cases"),
+          where("status", "==", "published"),
+          where("visibility", "==", "public")
+        );
+        const publicSnap = await getDocs(publicQ);
+        document.getElementById("public-cases").textContent = publicSnap.size;
+      } catch (err) {
+        console.error(err);
+      }
+    })();
+  </script>
+</body>
+</html>

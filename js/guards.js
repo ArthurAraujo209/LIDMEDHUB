@@ -20,9 +20,13 @@ export function waitForAuth() {
 
 export async function loadProfile(user, { force = false } = {}) {
   if (!user) return null;
-  if (!force && _profileCache.has(user.uid)) return _profileCache.get(user.uid);
-  const profile = await getUserDoc(user.uid);
+  const profile = !force && _profileCache.has(user.uid)
+    ? _profileCache.get(user.uid)
+    : await getUserDoc(user.uid);
   if (profile) _profileCache.set(user.uid, profile);
+  if (["auto", "light", "dark"].includes(profile?.preferences?.theme)) {
+    window.lidmedTheme?.setPreference(profile.preferences.theme);
+  }
   return profile;
 }
 
@@ -99,5 +103,22 @@ export async function redirectIfAuthed({ to = "/dashboard.html" } = {}) {
     return { user, profile };
   }
   navigate("/aguardando-aprovacao.html");
+  return { user, profile };
+}
+
+/**
+ * Exige usuário autenticado, aprovado E com role admin.
+ * Usado nas páginas /admin/*.
+ */
+export async function requireAdmin({ redirect = "/dashboard.html" } = {}) {
+  const result = await requireApproved({ redirect });
+  if (!result) return null;
+
+  const { user, profile } = result;
+  if (profile.role !== "admin") {
+    navigate(redirect);
+    return null;
+  }
+
   return { user, profile };
 }

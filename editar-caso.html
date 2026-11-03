@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#0F4C5C">
+  <meta name="robots" content="noindex">
+  <title>Editar Caso Clínico — LIDMED HUB</title>
+
+  <link rel="icon" href="/assets/icons/favicon.svg" type="image/svg+xml">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+  <script src="/js/ui/theme.js"></script>
+  <link rel="stylesheet" href="/css/tokens.css">
+  <link rel="stylesheet" href="/css/reset.css">
+  <link rel="stylesheet" href="/css/global.css">
+  <link rel="stylesheet" href="/css/pages/cases.css">
+  <script type="module" src="/js/ui/site-nav.js"></script>
+</head>
+<body>
+  <header class="app-header">
+    <div class="container">
+      <a href="/dashboard.html" class="brand">
+        <span class="brand-mark">L</span>
+        <span>LIDMED HUB</span>
+      </a>
+      <div class="row">
+        <a href="/dashboard.html" class="btn btn-ghost btn-sm">Voltar</a>
+      </div>
+    </div>
+  </header>
+
+  <main class="wizard-shell">
+    <div class="wizard-container">
+      <div id="loading-state" style="text-align: center; padding: var(--space-8);">
+        <p>Carregando caso...</p>
+      </div>
+
+      <div id="error-state" style="display: none; text-align: center; padding: var(--space-8);">
+        <h2>Caso não encontrado</h2>
+        <p class="text-muted">O caso não existe ou você não tem permissão para editá-lo.</p>
+        <a href="/dashboard.html" class="btn btn-primary" style="margin-top: var(--space-4);">Voltar</a>
+      </div>
+
+      <div id="edit-content" style="display: none;">
+        <div class="wizard-header">
+          <h1 class="wizard-title">Editar Caso Clínico</h1>
+          <p class="wizard-subtitle">Modificar informações do caso</p>
+        </div>
+
+        <div class="anonymization-warning" style="margin-bottom: var(--space-5);">
+          <h4>Tipo de Edição</h4>
+          <div class="role-options">
+            <div class="role-option">
+              <input type="radio" id="edit-light" name="editType" value="light" checked>
+              <label for="edit-light">
+                <strong>Edição Leve</strong><br>
+                <small>Correção de typos, formatação. Tentativas existentes continuam válidas.</small>
+              </label>
+            </div>
+            <div class="role-option">
+              <input type="radio" id="edit-structural" name="editType" value="structural">
+              <label for="edit-structural">
+                <strong>Edição Estrutural</strong><br>
+                <small>Novo passo, diagnóstico alterado. Cria nova versão do caso.</small>
+              </label>
+            </div>
+          </div>
+        </div>
+
+        <form id="case-form">
+          <div class="wizard-content">
+            <h3>Metadados</h3>
+
+            <div class="field">
+              <label for="title">Título <span class="required">*</span></label>
+              <input id="title" name="title" type="text" required maxlength="200">
+            </div>
+
+            <div class="field">
+              <label for="specialty">Especialidade <span class="required">*</span></label>
+              <select id="specialty" name="specialty" required>
+                <option value="">Selecione...</option>
+              </select>
+            </div>
+
+            <div class="field">
+              <label for="tags">Tags</label>
+              <div class="tags-input-wrapper" id="tags-wrapper">
+                <input type="text" class="tags-input" id="tags-input">
+              </div>
+            </div>
+
+            <div class="field">
+              <label>Dificuldade <span class="required">*</span></label>
+              <div class="difficulty-selector">
+                <div class="difficulty-option">
+                  <input type="radio" id="diff-1" name="difficulty" value="1">
+                  <label for="diff-1">1 - Fácil</label>
+                </div>
+                <div class="difficulty-option">
+                  <input type="radio" id="diff-2" name="difficulty" value="2">
+                  <label for="diff-2">2</label>
+                </div>
+                <div class="difficulty-option">
+                  <input type="radio" id="diff-3" name="difficulty" value="3">
+                  <label for="diff-3">3 - Médio</label>
+                </div>
+                <div class="difficulty-option">
+                  <input type="radio" id="diff-4" name="difficulty" value="4">
+                  <label for="diff-4">4</label>
+                </div>
+                <div class="difficulty-option">
+                  <input type="radio" id="diff-5" name="difficulty" value="5">
+                  <label for="diff-5">5 - Difícil</label>
+                </div>
+              </div>
+            </div>
+
+            <div class="field">
+              <label>Visibilidade <span class="required">*</span></label>
+              <div class="role-options">
+                <div class="role-option">
+                  <input type="radio" id="vis-public" name="visibility" value="public">
+                  <label for="vis-public">Público</label>
+                </div>
+                <div class="role-option">
+                  <input type="radio" id="vis-private" name="visibility" value="private">
+                  <label for="vis-private">Privado</label>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="wizard-content" style="margin-top: var(--space-4);">
+            <h3>Conteúdo do Caso</h3>
+            <p class="text-sm text-muted" style="margin-bottom: var(--space-4);">
+              A edição de conteúdo (etapas, diagnóstico) está disponível apenas em edições estruturais.
+              Para alterar, selecione "Edição Estrutural" acima.
+            </p>
+            <div id="steps-preview"></div>
+          </div>
+
+          <div class="wizard-actions" style="margin-top: var(--space-5);">
+            <div class="wizard-actions-left"></div>
+            <div class="wizard-actions-right">
+              <button type="submit" class="btn btn-primary" id="save-btn">Salvar Alterações</button>
+            </div>
+          </div>
+        </form>
+      </div>
+    </div>
+  </main>
+
+  <script type="module" src="/js/pages/editar-caso.js"></script>
+</body>
+</html>

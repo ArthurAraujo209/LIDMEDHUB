@@ -1,5 +1,5 @@
 .auth-shell {
-  min-height: 100vh;
+  min-height: calc(100vh - var(--header-height));
   display: grid;
   place-items: center;
   padding: var(--space-6) var(--space-4);
@@ -20,6 +20,9 @@
   display: flex;
   justify-content: center;
   margin-bottom: var(--space-6);
+}
+.app-header + .auth-shell .auth-brand {
+  display: none;
 }
 .auth-title {
   text-align: center;

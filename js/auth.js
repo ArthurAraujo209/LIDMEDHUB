@@ -68,15 +68,47 @@ function buildUserDoc(user, { role = "student", name } = {}) {
     publicName: pub,
     photoURL: user.photoURL || "",
     role: safeRole,
-    status: "pending"
+    status: "pending",
+    stats: {
+      casesCreated: 0,
+      casesSolved: 0,
+      totalScore: 0,
+      avgScore: 0,
+      lastActivityAt: null
+    },
+    privateAreas: {},
+    preferences: {
+      theme: "auto"
+    }
   };
 }
 
 export async function createUserDoc(user, opts = {}) {
   const base = buildUserDoc(user, opts);
-  const payload = { ...base, createdAt: serverTimestamp() };
+  const payload = {
+    ...base,
+    createdAt: serverTimestamp(),
+    updatedAt: serverTimestamp()
+  };
+
+  // Cria o documento principal do usuário
   await setDoc(doc(db, "users", user.uid), payload);
-  return { ...base, createdAt: new Date() };
+
+  // Cria o perfil público (Fase 2, mas já preparado)
+  const publicProfile = {
+    publicName: base.publicName,
+    photoURL: base.photoURL,
+    role: base.role,
+    statsPublic: {
+      casesCreated: 0,
+      casesSolved: 0
+    },
+    updatedAt: serverTimestamp()
+  };
+
+  await setDoc(doc(db, "publicProfiles", user.uid), publicProfile);
+
+  return { ...base, createdAt: new Date(), updatedAt: new Date() };
 }
 
 export async function ensureUserDoc(user, opts = {}) {

@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#0F4C5C">
+  <meta name="robots" content="noindex">
+  <title>Meu Histórico — LIDMED HUB</title>
+
+  <link rel="icon" href="/assets/icons/favicon.svg" type="image/svg+xml">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+  <script src="/js/ui/theme.js"></script>
+  <link rel="stylesheet" href="/css/tokens.css">
+  <link rel="stylesheet" href="/css/reset.css">
+  <link rel="stylesheet" href="/css/global.css">
+  <link rel="stylesheet" href="/css/pages/profile.css">
+  <script type="module" src="/js/ui/site-nav.js"></script>
+</head>
+<body>
+  <header class="app-header">
+    <div class="container">
+      <a href="/dashboard.html" class="brand">
+        <span class="brand-mark">L</span>
+        <span>LIDMED HUB</span>
+      </a>
+      <div class="row">
+        <a href="/meu-perfil.html" class="btn btn-ghost btn-sm">Meu Perfil</a>
+        <button id="logout-btn" class="btn btn-secondary btn-sm">Sair</button>
+      </div>
+    </div>
+  </header>
+
+  <main class="profile-shell">
+    <div class="profile-container">
+      <h1 style="margin-bottom: var(--space-5);">Meu Histórico</h1>
+
+      <div id="loading-state" style="text-align: center; padding: var(--space-6);">
+        <p class="text-muted">Carregando histórico...</p>
+      </div>
+
+      <div id="history-content" style="display: none;">
+        <div id="attempts-list"></div>
+
+        <div id="empty-state" class="empty-state" style="display: none;">
+          <div class="empty-state-icon">📋</div>
+          <p>Você ainda não resolveu nenhum caso</p>
+          <a href="/casoteca.html" class="btn btn-primary" style="margin-top: var(--space-4);">
+            Explorar Casoteca
+          </a>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <script type="module">
+    import { requireApproved } from "/js/guards.js";
+    import { logout } from "/js/auth.js";
+    import { getUserAttempts } from "/js/attempts.js";
+    import { getCase } from "/js/cases.js";
+    import { getScoreLabel, getScoreColor } from "/js/scoring.js";
+
+    let currentUser = null;
+
+    (async () => {
+      const ctx = await requireApproved();
+      if (!ctx) return;
+      currentUser = ctx.user;
+
+      const loadingState = document.getElementById("loading-state");
+      const historyContent = document.getElementById("history-content");
+      const attemptsList = document.getElementById("attempts-list");
+      const emptyState = document.getElementById("empty-state");
+
+      try {
+        const attempts = await getUserAttempts(currentUser.uid);
+
+        loadingState.style.display = "none";
+        historyContent.style.display = "block";
+
+        if (attempts.length === 0) {
+          emptyState.style.display = "block";
+          return;
+        }
+
+        // Busca dados dos casos
+        for (const attempt of attempts) {
+          if (attempt.status !== "solved") continue;
+
+          const caseData = await getCase(attempt.caseId);
+          if (!caseData) continue;
+
+          const completedAt = attempt.completedAt?.toDate?.() || new Date(attempt.completedAt);
+          const dateStr = completedAt.toLocaleDateString('pt-BR', {
+            day: '2-digit',
+            month: '2-digit',
+            year: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit'
+          });
+
+          const scoreColor = getScoreColor(attempt.score);
+          const durationMin = Math.floor((attempt.durationSeconds || 0) / 60);
+
+          const card = document.createElement("div");
+          card.className = "form-section";
+          card.style.marginBottom = "var(--space-4)";
+          card.innerHTML = `
+            <div style="display: flex; justify-content: space-between; align-items: start; gap: var(--space-4);">
+              <div style="flex: 1;">
+                <h4 style="margin-bottom: var(--space-2);">
+                  <a href="/caso.html?id=${attempt.caseId}" style="color: var(--primary); text-decoration: none;">
+                    ${caseData.title}
+                  </a>
+                </h4>
+                <div style="display: flex; flex-wrap: wrap; gap: var(--space-2); margin-bottom: var(--space-2);">
+                  <span class="badge">${caseData.specialty}</span>
+                  <span class="badge badge-${scoreColor}">
+                    ${attempt.score} pontos
+                  </span>
+                  <span class="text-xs text-subtle">${attempt.hintsCount || 0} dica${(attempt.hintsCount || 0) !== 1 ? 's' : ''}</span>
+                  <span class="text-xs text-subtle">${durationMin}min</span>
+                </div>
+                <p class="text-xs text-subtle">${dateStr}</p>
+              </div>
+            </div>
+          `;
+
+          attemptsList.appendChild(card);
+        }
+      } catch (err) {
+        console.error(err);
+        loadingState.innerHTML = '<p style="color: var(--danger);">Erro ao carregar histórico</p>';
+      }
+    })();
+
+    document.getElementById("logout-btn").addEventListener("click", async () => {
+      try {
+        await logout();
+      } finally {
+        location.replace("/login.html");
+      }
+    });
+  </script>
+</body>
+</html>

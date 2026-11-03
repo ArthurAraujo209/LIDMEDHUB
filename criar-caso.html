@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#0F4C5C">
+  <meta name="robots" content="noindex">
+  <title>Criar Caso Clínico — LIDMED HUB</title>
+
+  <script src="/js/ui/theme.js"></script>
+  <link rel="icon" href="/assets/icons/favicon.svg" type="image/svg+xml">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+  <link rel="stylesheet" href="/css/tokens.css">
+  <link rel="stylesheet" href="/css/reset.css">
+  <link rel="stylesheet" href="/css/global.css">
+  <link rel="stylesheet" href="/css/pages/cases.css">
+  <script type="module" src="/js/ui/site-nav.js"></script>
+</head>
+<body>
+  <header class="app-header">
+    <div class="container">
+      <a href="/dashboard.html" class="brand">
+        <span class="brand-mark">L</span>
+        <span>LIDMED HUB</span>
+      </a>
+      <div class="row">
+        <a href="/dashboard.html" class="btn btn-ghost btn-sm">Voltar</a>
+      </div>
+    </div>
+  </header>
+
+  <main class="wizard-shell">
+    <div class="wizard-container">
+      <div class="wizard-header">
+        <h1 class="wizard-title">Criar Novo Caso Clínico</h1>
+        <p class="wizard-subtitle">Preencha as informações do caso em 4 etapas</p>
+      </div>
+
+      <div class="wizard-steps">
+        <div class="wizard-step is-active" data-step="1">
+          <span class="wizard-step-number">1</span>
+          <span class="wizard-step-label">Metadados</span>
+        </div>
+        <div class="wizard-step" data-step="2">
+          <span class="wizard-step-number">2</span>
+          <span class="wizard-step-label">Etapas</span>
+        </div>
+        <div class="wizard-step" data-step="3">
+          <span class="wizard-step-number">3</span>
+          <span class="wizard-step-label">Encerramento</span>
+        </div>
+        <div class="wizard-step" data-step="4">
+          <span class="wizard-step-number">4</span>
+          <span class="wizard-step-label">Anonimização</span>
+        </div>
+      </div>
+
+      <form id="case-form">
+        <!-- Step 1: Metadados -->
+        <div class="wizard-section is-active" data-section="1">
+          <div class="wizard-content">
+            <h3>Metadados do Caso</h3>
+
+            <div class="field">
+              <label for="title">Título do caso <span class="required">*</span></label>
+              <input id="title" name="title" type="text" required maxlength="200" placeholder="Ex: Paciente com dispneia e febre">
+              <span class="field-error" data-error-for="title"></span>
+            </div>
+
+            <div class="field">
+              <label for="specialty">Especialidade <span class="required">*</span></label>
+              <select id="specialty" name="specialty" required>
+                <option value="">Selecione...</option>
+              </select>
+              <span class="field-error" data-error-for="specialty"></span>
+            </div>
+
+            <div class="field">
+              <label for="tags">Tags (pressione Enter para adicionar)</label>
+              <div class="tags-input-wrapper" id="tags-wrapper">
+                <input type="text" class="tags-input" id="tags-input" placeholder="Digite uma tag...">
+              </div>
+              <span class="field-hint">Ex: pneumonia, insuficiência respiratória</span>
+            </div>
+
+            <div class="field">
+              <label>Dificuldade <span class="required">*</span></label>
+              <div class="difficulty-selector">
+                <div class="difficulty-option">
+                  <input type="radio" id="diff-1" name="difficulty" value="1" required>
+                  <label for="diff-1">1 - Fácil</label>
+                </div>
+                <div class="difficulty-option">
+                  <input type="radio" id="diff-2" name="difficulty" value="2">
+                  <label for="diff-2">2</label>
+                </div>
+                <div class="difficulty-option">
+                  <input type="radio" id="diff-3" name="difficulty" value="3">
+                  <label for="diff-3">3 - Médio</label>
+                </div>
+                <div class="difficulty-option">
+                  <input type="radio" id="diff-4" name="difficulty" value="4">
+                  <label for="diff-4">4</label>
+                </div>
+                <div class="difficulty-option">
+                  <input type="radio" id="diff-5" name="difficulty" value="5">
+                  <label for="diff-5">5 - Difícil</label>
+                </div>
+              </div>
+            </div>
+
+            <div class="field">
+              <label>Visibilidade <span class="required">*</span></label>
+              <div class="role-options">
+                <div class="role-option">
+                  <input type="radio" id="vis-public" name="visibility" value="public" checked>
+                  <label for="vis-public">Público (aparece na casoteca)</label>
+                </div>
+                <div class="role-option">
+                  <input type="radio" id="vis-private" name="visibility" value="private">
+                  <label for="vis-private">Privado (apenas você)</label>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Step 2: Etapas -->
+        <div class="wizard-section" data-section="2">
+          <div class="wizard-content">
+            <h3>Etapas do Caso</h3>
+            <p class="field-hint" style="margin-bottom: var(--space-4);">
+              Adicione as informações que serão reveladas progressivamente ao resolver o caso.
+            </p>
+
+            <div id="steps-container" class="dynamic-steps"></div>
+
+            <button type="button" class="btn btn-secondary btn-block btn-add-step" id="add-step-btn">
+              + Adicionar Etapa
+            </button>
+          </div>
+        </div>
+
+        <!-- Step 3: Encerramento -->
+        <div class="wizard-section" data-section="3">
+          <div class="wizard-content">
+            <h3>Encerramento do Caso</h3>
+
+            <div class="field">
+              <label for="diagnosis">Diagnóstico <span class="required">*</span></label>
+              <textarea id="diagnosis" name="diagnosis" rows="3" required placeholder="Diagnóstico final do caso"></textarea>
+              <span class="field-error" data-error-for="diagnosis"></span>
+            </div>
+
+            <div class="field">
+              <label for="diagnosisKeywords">Palavras-chave do diagnóstico (pressione Enter)</label>
+              <div class="tags-input-wrapper" id="diagnosis-keywords-wrapper">
+                <input type="text" class="tags-input" id="diagnosis-keywords-input" placeholder="Digite uma palavra...">
+              </div>
+              <span class="field-hint">Palavras aceitas como hipótese correta. Ex: pneumonia, pneumonia bacteriana</span>
+            </div>
+
+            <div class="field">
+              <label for="optionSet">Opções de hipótese (pressione Enter, opcional)</label>
+              <div class="tags-input-wrapper" id="option-set-wrapper">
+                <input type="text" class="tags-input" id="option-set-input" placeholder="Digite uma opção...">
+              </div>
+              <span class="field-hint">Se preenchido, mostra botões em vez de campo livre</span>
+            </div>
+
+            <div class="field">
+              <label for="conduct">Conduta</label>
+              <textarea id="conduct" name="conduct" rows="4" placeholder="Conduta médica adotada"></textarea>
+            </div>
+
+            <div class="field">
+              <label for="explanation">Explicação acadêmica</label>
+              <textarea id="explanation" name="explanation" rows="6" placeholder="Explicação detalhada, fisiopatologia, diferenciais"></textarea>
+            </div>
+          </div>
+        </div>
+
+        <!-- Step 4: Anonimização -->
+        <div class="wizard-section" data-section="4">
+          <div class="wizard-content">
+            <h3>Declaração de Anonimização</h3>
+
+            <div class="anonymization-warning">
+              <h4>⚠ Atenção: Sigilo do Paciente</h4>
+              <p>
+                Todo caso clínico deve ser devidamente anonimizado. Nunca inclua dados que permitam
+                identificar o paciente, como nome, CPF, telefone, e-mail, prontuário, iniciais ou datas
+                de nascimento completas.
+              </p>
+            </div>
+
+            <div id="sensitive-warnings"></div>
+
+            <label class="anonymization-checkbox">
+              <input type="checkbox" id="anonymization-check" required>
+              <span>
+                Declaro que este caso foi devidamente anonimizado e não contém informações que
+                permitam identificar o paciente.
+              </span>
+            </label>
+          </div>
+        </div>
+
+        <div class="wizard-actions">
+          <div class="wizard-actions-left">
+            <button type="button" class="btn btn-ghost" id="prev-btn" style="display: none;">← Anterior</button>
+          </div>
+          <div class="wizard-actions-right">
+            <button type="button" class="btn btn-secondary" id="save-draft-btn">Salvar Rascunho</button>
+            <button type="button" class="btn btn-primary" id="next-btn">Próximo →</button>
+            <button type="submit" class="btn btn-primary" id="publish-btn" style="display: none;">Publicar Caso</button>
+          </div>
+        </div>
+      </form>
+    </div>
+  </main>
+
+  <script type="module" src="/js/pages/criar-caso.js"></script>
+</body>
+</html>

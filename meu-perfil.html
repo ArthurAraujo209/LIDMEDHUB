@@ -1,0 +1,401 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#0F4C5C">
+  <meta name="robots" content="noindex">
+  <title>Meu Perfil — LIDMED HUB</title>
+
+  <script src="/js/ui/theme.js"></script>
+  <link rel="icon" href="/assets/icons/favicon.svg" type="image/svg+xml">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+  <link rel="stylesheet" href="/css/tokens.css">
+  <link rel="stylesheet" href="/css/reset.css">
+  <link rel="stylesheet" href="/css/global.css">
+  <link rel="stylesheet" href="/css/pages/profile.css">
+  <script type="module" src="/js/ui/site-nav.js"></script>
+</head>
+<body>
+  <header class="app-header">
+    <div class="container">
+      <a href="/dashboard.html" class="brand" aria-label="LIDMED HUB">
+        <span class="brand-mark" aria-hidden="true">L</span>
+        <span>LIDMED HUB</span>
+      </a>
+      <div class="row">
+        <a href="/meu-perfil.html" class="btn btn-ghost btn-sm" aria-label="Meu perfil">
+          <span id="header-public-name">—</span>
+        </a>
+        <button id="logout-btn" class="btn btn-secondary btn-sm">Sair</button>
+      </div>
+    </div>
+  </header>
+
+  <main class="profile-shell">
+    <div class="profile-container">
+      <!-- Header -->
+      <div class="profile-header">
+        <div class="profile-avatar" id="avatar">
+          <span id="avatar-text">?</span>
+        </div>
+        <div class="profile-info">
+          <h1 class="profile-name" id="display-name">Carregando...</h1>
+          <div class="profile-meta">
+            <span class="badge" id="role-badge">—</span>
+            <span class="badge badge-approved">Aprovado</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Estatísticas -->
+      <section class="profile-section">
+        <h3>Estatísticas</h3>
+        <div class="stats-grid">
+          <div class="stat-card">
+            <div class="stat-label">Casos criados</div>
+            <div class="stat-value" id="stat-created">0</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">Casos resolvidos</div>
+            <div class="stat-value" id="stat-solved">0</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">Pontuação média</div>
+            <div class="stat-value" id="stat-avg">—</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">Pontuação total</div>
+            <div class="stat-value" id="stat-total">0</div>
+          </div>
+        </div>
+        <p class="text-xs text-subtle" style="margin-top: var(--space-3);">
+          ℹ️ Suas estatísticas de dificuldade por especialidade são privadas e não são visíveis para outros usuários.
+        </p>
+      </section>
+
+      <!-- Editar Perfil -->
+      <section class="profile-section">
+        <h3>Editar perfil</h3>
+        <form id="profile-form" class="form-section">
+          <div class="field">
+            <label for="displayName">Nome completo <span class="required" aria-hidden="true">*</span></label>
+            <input id="displayName" name="displayName" type="text" required maxlength="120">
+            <span class="field-hint">Você aparecerá publicamente com iniciais abreviadas.</span>
+            <span class="field-error" data-error-for="displayName"></span>
+          </div>
+
+          <div class="field">
+            <label for="profile-photo-file">Foto de perfil</label>
+            <div class="profile-photo-upload">
+              <input id="profile-photo-file" type="file" accept="image/jpeg,image/png,image/webp">
+              <button type="button" class="btn btn-secondary btn-sm" id="crop-profile-photo-btn" disabled>Recortar foto</button>
+              <button type="button" class="btn btn-primary btn-sm" id="upload-profile-photo-btn" disabled hidden>Enviar e usar foto</button>
+              <span class="field-hint">JPEG, PNG ou WebP, até 3 MB. A foto será recortada em formato quadrado e hospedada publicamente no ImgBB.</span>
+              <span class="profile-photo-status" id="profile-photo-status" role="status" aria-live="polite"></span>
+            </div>
+            <div class="profile-photo-preview" id="profile-photo-preview" hidden>
+              <img alt="Pré-visualização do recorte da foto de perfil">
+              <p>Pré-visualização local; ainda não foi enviada.</p>
+            </div>
+            <label for="photoURL">Ou informe uma URL de foto</label>
+            <input id="photoURL" name="photoURL" type="url" maxlength="500" placeholder="https://exemplo.com/foto.jpg">
+            <span class="field-hint">Se preencher uma URL, ela será usada ao salvar o perfil.</span>
+            <span class="field-error" data-error-for="photoURL"></span>
+          </div>
+
+          <button type="submit" class="btn btn-primary" id="save-btn">Salvar alterações</button>
+        </form>
+      </section>
+
+      <!-- Preferências -->
+      <section class="profile-section">
+        <h3>Preferências</h3>
+        <div class="form-section">
+          <h4>Tema</h4>
+          <div class="theme-selector">
+            <div class="theme-option">
+              <input type="radio" id="theme-auto" name="theme" value="auto" checked>
+              <label for="theme-auto">Automático</label>
+            </div>
+            <div class="theme-option">
+              <input type="radio" id="theme-light" name="theme" value="light">
+              <label for="theme-light">Claro</label>
+            </div>
+            <div class="theme-option">
+              <input type="radio" id="theme-dark" name="theme" value="dark">
+              <label for="theme-dark">Escuro</label>
+            </div>
+          </div>
+          <p class="field-hint" style="margin-top: var(--space-3);">
+            A preferência é aplicada imediatamente e sincronizada com sua conta.
+          </p>
+        </div>
+      </section>
+    </div>
+  </main>
+
+  <script type="module">
+    import { requireApproved, clearProfileCache } from "/js/guards.js";
+    import { logout } from "/js/auth.js";
+    import { updateProfile } from "/js/profile.js";
+    import { toast } from "/js/ui/toast.js";
+    import { cropImage } from "/js/ui/image-editor.js";
+    import { uploadImage } from "/js/utils/uploadImage.js";
+
+    const ROLE_LABEL = {
+      student: "Estudante",
+      professor: "Professor / Preceptor",
+      admin: "Administrador"
+    };
+
+    let currentUser = null;
+    let currentProfile = null;
+
+    // Elementos
+    const avatarEl = document.getElementById("avatar");
+    const avatarTextEl = document.getElementById("avatar-text");
+    const displayNameEl = document.getElementById("display-name");
+    const roleBadgeEl = document.getElementById("role-badge");
+    const headerPublicNameEl = document.getElementById("header-public-name");
+
+    const statCreatedEl = document.getElementById("stat-created");
+    const statSolvedEl = document.getElementById("stat-solved");
+    const statAvgEl = document.getElementById("stat-avg");
+    const statTotalEl = document.getElementById("stat-total");
+
+    const form = document.getElementById("profile-form");
+    const displayNameInput = document.getElementById("displayName");
+    const photoURLInput = document.getElementById("photoURL");
+    const profilePhotoInput = document.getElementById("profile-photo-file");
+    const cropProfilePhotoButton = document.getElementById("crop-profile-photo-btn");
+    const uploadProfilePhotoButton = document.getElementById("upload-profile-photo-btn");
+    const profilePhotoStatus = document.getElementById("profile-photo-status");
+    const profilePhotoPreview = document.getElementById("profile-photo-preview");
+    const profilePhotoPreviewImage = profilePhotoPreview.querySelector("img");
+    const saveBtn = document.getElementById("save-btn");
+    const logoutBtn = document.getElementById("logout-btn");
+
+    const themeRadios = document.querySelectorAll('input[name="theme"]');
+    let pendingProfilePhoto = null;
+    let profilePhotoPreviewUrl = null;
+
+    function setFieldError(name, message) {
+      const el = document.querySelector(`[data-error-for="${name}"]`);
+      if (el) el.textContent = message || "";
+    }
+
+    function clearErrors() {
+      document.querySelectorAll(".field-error").forEach((el) => (el.textContent = ""));
+    }
+
+    function renderProfile(profile) {
+      currentProfile = profile;
+
+      displayNameEl.textContent = profile.displayName || "Usuário";
+      headerPublicNameEl.textContent = profile.publicName || "?";
+      roleBadgeEl.textContent = ROLE_LABEL[profile.role] || profile.role;
+
+      // Avatar
+      avatarEl.replaceChildren();
+      if (profile.photoURL) {
+        const image = document.createElement("img");
+        image.src = profile.photoURL;
+        image.alt = `Foto de ${profile.displayName || "perfil"}`;
+        avatarEl.appendChild(image);
+      } else {
+        avatarTextEl.textContent = profile.publicName || "?";
+        avatarEl.appendChild(avatarTextEl);
+      }
+
+      // Stats
+      const stats = profile.stats || {};
+      statCreatedEl.textContent = stats.casesCreated || 0;
+      statSolvedEl.textContent = stats.casesSolved || 0;
+      statTotalEl.textContent = stats.totalScore || 0;
+      statAvgEl.textContent = stats.casesSolved > 0
+        ? (stats.avgScore || 0).toFixed(1)
+        : "—";
+
+      // Form
+      displayNameInput.value = profile.displayName || "";
+      photoURLInput.value = profile.photoURL || "";
+
+      // Theme
+      const theme = profile.preferences?.theme || "auto";
+      window.lidmedTheme.setPreference(theme);
+      themeRadios.forEach(radio => {
+        radio.checked = radio.value === theme;
+      });
+    }
+
+    // Carrega perfil
+    (async () => {
+      const ctx = await requireApproved();
+      if (!ctx) return;
+      currentUser = ctx.user;
+      renderProfile(ctx.profile);
+    })();
+
+    profilePhotoInput.addEventListener("change", () => {
+      pendingProfilePhoto = null;
+      cropProfilePhotoButton.disabled = !profilePhotoInput.files?.[0];
+      uploadProfilePhotoButton.disabled = true;
+      uploadProfilePhotoButton.hidden = true;
+      profilePhotoPreview.hidden = true;
+      profilePhotoStatus.textContent = "";
+      if (profilePhotoPreviewUrl) URL.revokeObjectURL(profilePhotoPreviewUrl);
+      profilePhotoPreviewUrl = null;
+    });
+
+    cropProfilePhotoButton.addEventListener("click", async () => {
+      const file = profilePhotoInput.files?.[0];
+      if (!file) return;
+      if (!["image/jpeg", "image/png", "image/webp"].includes(file.type) || file.size > 3 * 1024 * 1024) {
+        profilePhotoStatus.textContent = "Escolha um JPEG, PNG ou WebP de até 3 MB.";
+        toast("Escolha uma imagem JPEG, PNG ou WebP de até 3 MB.", { type: "warning" });
+        return;
+      }
+
+      cropProfilePhotoButton.disabled = true;
+      try {
+        const croppedPhoto = await cropImage(file, { aspectRatio: 1, title: "Recortar foto de perfil" });
+        if (!croppedPhoto) return;
+        if (croppedPhoto.size > 3 * 1024 * 1024) {
+          throw new Error("O recorte ficou maior que 3 MB. Ajuste o zoom e tente novamente.");
+        }
+
+        pendingProfilePhoto = croppedPhoto;
+        if (profilePhotoPreviewUrl) URL.revokeObjectURL(profilePhotoPreviewUrl);
+        profilePhotoPreviewUrl = URL.createObjectURL(croppedPhoto);
+        profilePhotoPreviewImage.src = profilePhotoPreviewUrl;
+        profilePhotoPreview.hidden = false;
+        uploadProfilePhotoButton.hidden = false;
+        uploadProfilePhotoButton.disabled = false;
+        profilePhotoStatus.textContent = "Recorte pronto. Envie para salvar a foto no seu perfil.";
+      } catch (error) {
+        console.error(error);
+        profilePhotoStatus.textContent = error.message || "Não foi possível recortar a foto.";
+        toast(error.message || "Erro ao recortar a foto.", { type: "danger" });
+      } finally {
+        cropProfilePhotoButton.disabled = !profilePhotoInput.files?.[0];
+      }
+    });
+
+    uploadProfilePhotoButton.addEventListener("click", async () => {
+      if (!pendingProfilePhoto || !currentUser) {
+        toast("Selecione e recorte uma imagem antes de enviar.", { type: "warning" });
+        return;
+      }
+
+      uploadProfilePhotoButton.disabled = true;
+      cropProfilePhotoButton.disabled = true;
+      profilePhotoInput.disabled = true;
+      profilePhotoStatus.textContent = "Enviando foto ao ImgBB...";
+      try {
+        const photoURL = await uploadImage(pendingProfilePhoto, currentUser, "profile");
+        await updateProfile(currentUser.uid, { photoURL });
+        photoURLInput.value = photoURL;
+        clearProfileCache(currentUser.uid);
+        const context = await requireApproved({ redirect: "/meu-perfil.html" });
+        if (context) renderProfile(context.profile);
+        pendingProfilePhoto = null;
+        if (profilePhotoPreviewUrl) URL.revokeObjectURL(profilePhotoPreviewUrl);
+        profilePhotoPreviewUrl = null;
+        profilePhotoInput.value = "";
+        cropProfilePhotoButton.disabled = true;
+        uploadProfilePhotoButton.hidden = true;
+        profilePhotoPreview.hidden = true;
+        profilePhotoStatus.textContent = "Foto atualizada com sucesso.";
+        toast("Foto de perfil atualizada!", { type: "success" });
+      } catch (error) {
+        console.error(error);
+        profilePhotoStatus.textContent = error.message || "Não foi possível enviar a foto.";
+        toast(error.message || "Erro ao atualizar a foto.", { type: "danger" });
+        uploadProfilePhotoButton.disabled = false;
+      } finally {
+        profilePhotoInput.disabled = false;
+        if (pendingProfilePhoto) {
+          cropProfilePhotoButton.disabled = !profilePhotoInput.files?.[0];
+          uploadProfilePhotoButton.disabled = false;
+        }
+      }
+    });
+
+    // Salvar perfil
+    form.addEventListener("submit", async (ev) => {
+      ev.preventDefault();
+      clearErrors();
+
+      const displayName = displayNameInput.value.trim().replace(/\s+/g, " ");
+      const photoURL = photoURLInput.value.trim();
+
+      let ok = true;
+      if (displayName.length < 2 || displayName.length > 120) {
+        setFieldError("displayName", "Nome deve ter entre 2 e 120 caracteres.");
+        ok = false;
+      }
+      if (photoURL && photoURL.length > 500) {
+        setFieldError("photoURL", "URL muito longa (máximo 500 caracteres).");
+        ok = false;
+      }
+      if (!ok) return;
+
+      saveBtn.disabled = true;
+      const originalText = saveBtn.textContent;
+      saveBtn.textContent = "Salvando…";
+
+      try {
+        await updateProfile(currentUser.uid, { displayName, photoURL });
+        clearProfileCache(currentUser.uid);
+
+        // Recarrega o perfil
+        const ctx = await requireApproved({ redirect: "/meu-perfil.html" });
+        if (ctx) renderProfile(ctx.profile);
+
+        toast("Perfil atualizado com sucesso!", { type: "success" });
+      } catch (err) {
+        console.error(err);
+        toast(err.message || "Erro ao atualizar perfil.", { type: "danger" });
+      } finally {
+        saveBtn.disabled = false;
+        saveBtn.textContent = originalText;
+      }
+    });
+
+    // Salvar tema
+    themeRadios.forEach(radio => {
+      radio.addEventListener("change", async () => {
+        if (!radio.checked) return;
+        window.lidmedTheme.setPreference(radio.value);
+        if (!currentUser) {
+          toast("Aguarde o carregamento do perfil antes de salvar o tema.", { type: "warning" });
+          return;
+        }
+        try {
+          await updateProfile(currentUser.uid, {
+            preferences: { theme: radio.value }
+          });
+          toast("Preferência de tema salva.", { type: "success", duration: 2000 });
+        } catch (err) {
+          console.error(err);
+          toast("Erro ao salvar tema.", { type: "danger" });
+        }
+      });
+    });
+
+    // Logout
+    logoutBtn.addEventListener("click", async () => {
+      try {
+        clearProfileCache(currentUser.uid);
+        await logout();
+      } finally {
+        location.replace("/login.html");
+      }
+    });
+  </script>
+</body>
+</html>

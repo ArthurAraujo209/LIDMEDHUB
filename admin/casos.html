@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#0F4C5C">
+  <meta name="robots" content="noindex">
+  <title>Gerenciar Casos — Admin — LIDMED HUB</title>
+
+  <link rel="icon" href="/assets/icons/favicon.svg" type="image/svg+xml">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+  <script src="/js/ui/theme.js"></script>
+  <link rel="stylesheet" href="/css/tokens.css">
+  <link rel="stylesheet" href="/css/reset.css">
+  <link rel="stylesheet" href="/css/global.css">
+  <link rel="stylesheet" href="/css/pages/admin.css">
+  <script type="module" src="/js/ui/site-nav.js"></script>
+</head>
+<body class="admin-shell">
+  <header class="admin-header">
+    <div class="container">
+      <div>
+        <a href="/dashboard.html" class="brand">
+          <span class="brand-mark">L</span>
+          <span>LIDMED HUB</span>
+        </a>
+        <h1 class="admin-title">Gerenciar Casos</h1>
+      </div>
+      <div class="admin-nav">
+        <a href="/admin/index.html" class="btn btn-ghost btn-sm">Dashboard</a>
+        <a href="/admin/usuarios.html" class="btn btn-ghost btn-sm">Usuários</a>
+        <a href="/admin/casos.html" class="btn btn-primary btn-sm">Casos</a>
+        <a href="/admin/categorias.html" class="btn btn-ghost btn-sm">Categorias</a>
+        <a href="/dashboard.html" class="btn btn-ghost btn-sm">Voltar</a>
+      </div>
+    </div>
+  </header>
+
+  <div class="admin-content container">
+    <div class="filters-bar">
+      <select id="filter-status">
+        <option value="">Todos os status</option>
+        <option value="published">Publicado</option>
+        <option value="draft">Rascunho</option>
+        <option value="moderated">Moderado</option>
+        <option value="removed">Removido</option>
+      </select>
+
+      <select id="filter-visibility">
+        <option value="">Todas as visibilidades</option>
+        <option value="public">Público</option>
+        <option value="private">Privado</option>
+      </select>
+
+      <button id="refresh-btn" class="btn btn-secondary">↻ Atualizar</button>
+    </div>
+
+    <div class="users-table-wrapper">
+      <table class="users-table">
+        <thead>
+          <tr>
+            <th>Caso</th>
+            <th>Autor</th>
+            <th>Status</th>
+            <th>Visibilidade</th>
+            <th>Publicado</th>
+            <th class="text-right">Ações</th>
+          </tr>
+        </thead>
+        <tbody id="cases-tbody">
+          <tr>
+            <td colspan="6" class="table-empty">Carregando casos...</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div id="loading-overlay" class="loading-overlay" style="display: none;">
+    <div class="loading-spinner"></div>
+  </div>
+
+  <script type="module">
+    import { requireAdmin } from "/js/guards.js";
+    import { db, collection, getDocs, query, where, orderBy, doc, updateDoc, serverTimestamp, addDoc } from "/js/firebase.js";
+    import { toast } from "/js/ui/toast.js";
+
+    let currentAdmin = null;
+    let allCases = [];
+
+    const filterStatusEl = document.getElementById("filter-status");
+    const filterVisibilityEl = document.getElementById("filter-visibility");
+    const casesTableBody = document.getElementById("cases-tbody");
+    const loadingOverlay = document.getElementById("loading-overlay");
+
+    (async () => {
+      const ctx = await requireAdmin();
+      if (!ctx) return;
+      currentAdmin = ctx.user;
+      loadCases();
+    })();
+
+    async function loadCases() {
+      showLoading();
+
+      try {
+        let q = query(collection(db, "cases"), orderBy("createdAt", "desc"));
+
+        if (filterStatusEl.value) {
+          q = query(collection(db, "cases"), where("status", "==", filterStatusEl.value), orderBy("createdAt", "desc"));
+        }
+
+        if (filterVisibilityEl.value) {
+          q = query(collection(db, "cases"), where("visibility", "==", filterVisibilityEl.value), orderBy("createdAt", "desc"));
+        }
+
+        const snap = await getDocs(q);
+        allCases = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+
+        renderCases(allCases);
+        hideLoading();
+      } catch (err) {
+        console.error(err);
+        hideLoading();
+        casesTableBody.innerHTML = '<tr><td colspan="6" class="table-empty">Erro ao carregar casos</td></tr>';
+        toast("Erro ao carregar casos.", { type: "danger" });
+      }
+    }
+
+    function renderCases(cases) {
+      if (cases.length === 0) {
+        casesTableBody.innerHTML = '<tr><td colspan="6" class="table-empty">Nenhum caso encontrado</td></tr>';
+        return;
+      }
+
+      casesTableBody.innerHTML = cases.map(c => {
+        const publishedAt = c.publishedAt?.toDate?.() || (c.publishedAt ? new Date(c.publishedAt) : null);
+        const dateStr = publishedAt ? publishedAt.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric' }) : '-';
+
+        return `
+          <tr>
+            <td>
+              <div style="max-width: 300px;">
+                <a href="/caso.html?id=${c.id}" style="color: var(--primary); text-decoration: none; font-weight: 500;">
+                  ${c.title}
+                </a>
+                <div class="text-xs text-subtle">${c.specialty} • Nível ${c.difficulty}</div>
+              </div>
+            </td>
+            <td>
+              <span class="text-sm">${c.authorPublicName}</span>
+            </td>
+            <td>
+              <span class="badge badge-${c.status}">${c.status}</span>
+            </td>
+            <td>
+              <span class="text-sm">${c.visibility}</span>
+            </td>
+            <td>
+              <span class="text-sm text-subtle">${dateStr}</span>
+            </td>
+            <td>
+              <div class="table-actions">
+                ${c.status === 'published' ? `
+                  <button class="btn btn-warning btn-sm" onclick="window.moderateCase('${c.id}')">Moderar</button>
+                  <button class="btn btn-danger btn-sm" onclick="window.removeCase('${c.id}')">Remover</button>
+                ` : ''}
+                ${c.status === 'moderated' || c.status === 'removed' ? `
+                  <button class="btn btn-success btn-sm" onclick="window.restoreCase('${c.id}')">Restaurar</button>
+                ` : ''}
+              </div>
+            </td>
+          </tr>
+        `;
+      }).join('');
+    }
+
+    function showLoading() {
+      loadingOverlay.style.display = "flex";
+    }
+
+    function hideLoading() {
+      loadingOverlay.style.display = "none";
+    }
+
+    window.moderateCase = async (caseId) => {
+      if (!confirm("Marcar este caso como moderado?")) return;
+
+      showLoading();
+      try {
+        await updateDoc(doc(db, "cases", caseId), {
+          status: "moderated",
+          updatedAt: serverTimestamp()
+        });
+
+        await addDoc(collection(db, "auditLog"), {
+          actorId: currentAdmin.uid,
+          action: "case_moderate",
+          targetType: "case",
+          targetId: caseId,
+          metadata: {},
+          timestamp: serverTimestamp()
+        });
+
+        toast("Caso moderado.", { type: "success" });
+        await loadCases();
+      } catch (err) {
+        console.error(err);
+        hideLoading();
+        toast("Erro ao moderar caso.", { type: "danger" });
+      }
+    };
+
+    window.removeCase = async (caseId) => {
+      const reason = prompt("Motivo da remoção:");
+      if (!reason) return;
+
+      showLoading();
+      try {
+        await updateDoc(doc(db, "cases", caseId), {
+          status: "removed",
+          updatedAt: serverTimestamp()
+        });
+
+        await addDoc(collection(db, "auditLog"), {
+          actorId: currentAdmin.uid,
+          action: "case_remove",
+          targetType: "case",
+          targetId: caseId,
+          metadata: { reason },
+          timestamp: serverTimestamp()
+        });
+
+        toast("Caso removido.", { type: "success" });
+        await loadCases();
+      } catch (err) {
+        console.error(err);
+        hideLoading();
+        toast("Erro ao remover caso.", { type: "danger" });
+      }
+    };
+
+    window.restoreCase = async (caseId) => {
+      if (!confirm("Restaurar este caso para publicado?")) return;
+
+      showLoading();
+      try {
+        await updateDoc(doc(db, "cases", caseId), {
+          status: "published",
+          updatedAt: serverTimestamp()
+        });
+
+        await addDoc(collection(db, "auditLog"), {
+          actorId: currentAdmin.uid,
+          action: "case_restore",
+          targetType: "case",
+          targetId: caseId,
+          metadata: {},
+          timestamp: serverTimestamp()
+        });
+
+        toast("Caso restaurado.", { type: "success" });
+        await loadCases();
+      } catch (err) {
+        console.error(err);
+        hideLoading();
+        toast("Erro ao restaurar caso.", { type: "danger" });
+      }
+    };
+
+    filterStatusEl.addEventListener("change", loadCases);
+    filterVisibilityEl.addEventListener("change", loadCases);
+    document.getElementById("refresh-btn").addEventListener("click", loadCases);
+  </script>
+</body>
+</html>

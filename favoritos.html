@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#0F4C5C">
+  <meta name="robots" content="noindex">
+  <title>Meus Favoritos — LIDMED HUB</title>
+
+  <link rel="icon" href="/assets/icons/favicon.svg" type="image/svg+xml">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+  <script src="/js/ui/theme.js"></script>
+  <link rel="stylesheet" href="/css/tokens.css">
+  <link rel="stylesheet" href="/css/reset.css">
+  <link rel="stylesheet" href="/css/global.css">
+  <link rel="stylesheet" href="/css/pages/casoteca.css">
+  <script type="module" src="/js/ui/site-nav.js"></script>
+</head>
+<body class="catalog-shell">
+  <header class="app-header">
+    <div class="container">
+      <a href="/dashboard.html" class="brand">
+        <span class="brand-mark">L</span>
+        <span>LIDMED HUB</span>
+      </a>
+      <div class="row">
+        <a href="/meu-perfil.html" class="btn btn-ghost btn-sm">Meu Perfil</a>
+        <button id="logout-btn" class="btn btn-secondary btn-sm">Sair</button>
+      </div>
+    </div>
+  </header>
+
+  <div class="catalog-header">
+    <div class="container">
+      <h1 class="catalog-title">Meus Favoritos</h1>
+      <p class="catalog-subtitle">Casos que você salvou para resolver depois</p>
+    </div>
+  </div>
+
+  <main class="container">
+    <div id="loading-state" style="text-align: center; padding: var(--space-8);">
+      <p class="text-muted">Carregando favoritos...</p>
+    </div>
+
+    <div class="cases-grid" id="cases-grid" style="display: none;"></div>
+
+    <div class="cases-empty" id="empty-state" style="display: none;">
+      <div class="cases-empty-icon">♡</div>
+      <p><strong>Nenhum caso favoritado</strong></p>
+      <p class="text-sm text-subtle">Explore a casoteca e favorite casos interessantes</p>
+      <a href="/casoteca.html" class="btn btn-primary" style="margin-top: var(--space-4);">
+        Ir para Casoteca
+      </a>
+    </div>
+  </main>
+
+  <script type="module">
+    import { requireApproved } from "/js/guards.js";
+    import { logout } from "/js/auth.js";
+    import { getUserFavorites } from "/js/favorites.js";
+
+    (async () => {
+      const ctx = await requireApproved();
+      if (!ctx) return;
+
+      const loadingState = document.getElementById("loading-state");
+      const casesGrid = document.getElementById("cases-grid");
+      const emptyState = document.getElementById("empty-state");
+
+      try {
+        const favorites = await getUserFavorites(ctx.user.uid);
+
+        loadingState.style.display = "none";
+
+        if (favorites.length === 0) {
+          emptyState.style.display = "block";
+          return;
+        }
+
+        casesGrid.style.display = "grid";
+
+        favorites.forEach(caseData => {
+          const card = document.createElement("a");
+          card.className = "case-card";
+          card.href = `/caso.html?id=${caseData.id}`;
+
+          const difficultyClass = `diff-${caseData.difficulty}`;
+          const stars = caseData.aggregate?.ratingAvg > 0
+            ? '★'.repeat(Math.round(caseData.aggregate.ratingAvg))
+            : '';
+          const starsClass = caseData.aggregate?.ratingAvg > 0 ? '' : 'is-empty';
+
+          card.innerHTML = `
+            <div class="case-card-header">
+              <div>
+                <h3 class="case-card-title">${caseData.title}</h3>
+                <p class="case-card-specialty">${caseData.specialty}</p>
+              </div>
+            </div>
+            <div class="case-card-meta">
+              <span class="difficulty-badge ${difficultyClass}">
+                Nível ${caseData.difficulty}
+              </span>
+              ${caseData.aggregate?.ratingAvg > 0 ? `
+                <span class="rating-stars ${starsClass}">${stars}</span>
+              ` : ''}
+            </div>
+            <div class="case-card-stats">
+              <span class="case-card-stat">
+                👥 ${caseData.aggregate?.attemptCount || 0} tentativas
+              </span>
+            </div>
+            <div class="case-card-author">
+              Por ${caseData.authorPublicName}
+            </div>
+          `;
+
+          casesGrid.appendChild(card);
+        });
+      } catch (err) {
+        console.error(err);
+        loadingState.innerHTML = '<p style="color: var(--danger); text-align: center;">Erro ao carregar favoritos</p>';
+      }
+    })();
+
+    document.getElementById("logout-btn").addEventListener("click", async () => {
+      try {
+        await logout();
+      } finally {
+        location.replace("/login.html");
+      }
+    });
+  </script>
+</body>
+</html>

@@ -12,10 +12,17 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 
+  <script src="/js/ui/theme.js"></script>
   <link rel="stylesheet" href="/css/tokens.css">
   <link rel="stylesheet" href="/css/reset.css">
   <link rel="stylesheet" href="/css/global.css">
   <link rel="stylesheet" href="/css/pages/dashboard.css">
+
+  <link rel="manifest" href="/manifest.webmanifest">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="LIDMED HUB">
+  <script type="module" src="/js/ui/site-nav.js"></script>
 </head>
 <body>
   <header class="app-header">
@@ -24,9 +31,9 @@
         <span class="brand-mark" aria-hidden="true">L</span>
         <span>LIDMED HUB</span>
       </a>
-      <div class="row">
+      <div class="row dashboard-header-actions">
         <a href="/meu-perfil.html" class="btn btn-ghost btn-sm" id="profile-link" aria-label="Abrir meu perfil">
-          <span id="public-name">—</span>
+          <span class="dashboard-profile-name" id="public-name">—</span>
         </a>
         <button id="logout-btn" class="btn btn-secondary btn-sm">Sair</button>
       </div>
@@ -37,23 +44,34 @@
     <section class="dash-grid">
       <div class="welcome-card">
         <span class="badge badge-primary" id="role-badge">—</span>
-        <h2 id="welcome-title" style="margin-top: var(--space-3);">Olá.</h2>
+        <h1 id="welcome-title">Olá.</h1>
         <p class="text-muted">
-          Este é o seu painel no LIDMED HUB. As funcionalidades de casos clínicos serão
-          ativadas nas próximas fases (casoteca, resolução progressiva, pontuação,
-          histórico e avaliações).
+          Bem-vindo ao LIDMED HUB! Explore casos clínicos criados pela comunidade,
+          resolva desafios progressivos e aprimore suas habilidades diagnósticas.
         </p>
 
         <div class="welcome-meta">
           <span class="badge" id="status-badge">—</span>
           <span class="text-xs text-subtle" id="email-line">—</span>
         </div>
+
+        <div id="admin-link-container" class="admin-link-container hidden">
+          <a href="/admin/index.html" class="btn btn-secondary btn-block">
+            🔧 Painel Administrativo
+          </a>
+        </div>
       </div>
 
       <aside class="side-list">
         <div class="card">
-          <h4>Próximos passos</h4>
-          <p>Casoteca e criação de casos chegam nas próximas fases.</p>
+          <h4>Ações Rápidas</h4>
+          <div class="quick-actions">
+            <a href="/casoteca.html" class="btn btn-primary btn-block">Explorar Casos</a>
+            <a href="/criar-caso.html" class="btn btn-secondary btn-block">Criar Novo Caso</a>
+            <a href="/meus-casos.html" class="btn btn-ghost btn-block">Meus Casos</a>
+            <a href="/historico.html" class="btn btn-ghost btn-block">Meu Histórico</a>
+            <a href="/favoritos.html" class="btn btn-ghost btn-block">Meus Favoritos</a>
+          </div>
         </div>
         <div class="card">
           <h4>Sigilo do paciente</h4>
@@ -65,12 +83,71 @@
         </div>
       </aside>
     </section>
+
+    <section class="community-feed" aria-labelledby="feed-title">
+      <header class="community-feed-header">
+        <span class="badge badge-primary">Comunidade LIDMED</span>
+        <h2 id="feed-title">Seu feed clínico</h2>
+        <p>Casos recentes, assuntos em destaque e contribuições da comunidade, atualizados a partir da casoteca.</p>
+      </header>
+
+      <section class="feed-section" aria-labelledby="feed-topics-title">
+        <div class="feed-section-header">
+          <h3 id="feed-topics-title">Assuntos em alta</h3>
+          <a href="/casoteca.html">Explorar casoteca</a>
+        </div>
+        <div class="feed-topics" id="feed-topics" aria-live="polite">
+          <p class="feed-empty">Carregando assuntos...</p>
+        </div>
+      </section>
+
+      <section class="feed-section" aria-labelledby="feed-creators-title">
+        <div class="feed-section-header">
+          <h3 id="feed-creators-title">Criadores em destaque</h3>
+        </div>
+        <div class="feed-cards" id="feed-creators" aria-live="polite">
+          <p class="feed-empty">Carregando contribuições...</p>
+        </div>
+      </section>
+
+      <section class="feed-section" aria-labelledby="feed-recent-title">
+        <div class="feed-section-header">
+          <h3 id="feed-recent-title">Recém-publicados</h3>
+          <a href="/casoteca.html">Ver todos</a>
+        </div>
+        <div class="feed-cards" id="feed-recent" aria-live="polite">
+          <p class="feed-empty">Carregando casos...</p>
+        </div>
+      </section>
+
+      <section class="feed-section" aria-labelledby="feed-popular-title">
+        <div class="feed-section-header">
+          <h3 id="feed-popular-title">Mais explorados</h3>
+          <a href="/casoteca.html">Ver casoteca</a>
+        </div>
+        <div class="feed-cards" id="feed-popular" aria-live="polite">
+          <p class="feed-empty">Carregando casos...</p>
+        </div>
+      </section>
+
+      <section class="feed-section" aria-labelledby="feed-rated-title">
+        <div class="feed-section-header">
+          <h3 id="feed-rated-title">Mais bem avaliados</h3>
+          <a href="/casoteca.html">Ver casoteca</a>
+        </div>
+        <div class="feed-cards" id="feed-rated" aria-live="polite">
+          <p class="feed-empty">Carregando casos...</p>
+        </div>
+      </section>
+    </section>
   </main>
 
   <script type="module">
     import { requireApproved, clearProfileCache } from "/js/guards.js";
     import { logout } from "/js/auth.js";
     import { toast } from "/js/ui/toast.js";
+    import { loadDashboardFeed } from "/js/dashboard.js";
+    import "/js/pwa.js";
 
     const ROLE_LABEL = {
       student: "Estudante",
@@ -84,25 +161,45 @@
       suspended: "Suspenso"
     };
 
+    const logoutButton = document.getElementById("logout-btn");
+
     (async () => {
-      const ctx = await requireApproved();
-      if (!ctx) return;
-      const { user, profile } = ctx;
-
-      document.getElementById("public-name").textContent = profile.publicName || "—";
-      document.getElementById("welcome-title").textContent =
-        `Bem-vindo(a), ${profile.publicName || profile.displayName || "usuário"}.`;
-      document.getElementById("role-badge").textContent = ROLE_LABEL[profile.role] || profile.role;
-      document.getElementById("status-badge").textContent = STATUS_LABEL[profile.status] || profile.status;
-      document.getElementById("email-line").textContent = profile.email || user.email || "";
-    })();
-
-    document.getElementById("logout-btn").addEventListener("click", async () => {
       try {
         const ctx = await requireApproved();
-        if (ctx) clearProfileCache(ctx.user.uid);
-      } catch (_) {}
-      try { await logout(); } finally { location.replace("/login.html"); }
+        if (!ctx) return;
+        const { user, profile } = ctx;
+
+        document.getElementById("public-name").textContent = profile.publicName || "—";
+        const displayName = profile.publicName || profile.displayName || "usuário";
+        const punctuation = /[.!?]$/.test(displayName) ? "" : ".";
+        document.getElementById("welcome-title").textContent =
+          `Bem-vindo(a), ${displayName}${punctuation}`;
+        document.getElementById("role-badge").textContent = ROLE_LABEL[profile.role] || profile.role;
+        document.getElementById("status-badge").textContent = STATUS_LABEL[profile.status] || profile.status;
+        document.getElementById("email-line").textContent = profile.email || user.email || "";
+
+        if (profile.role === "admin") {
+          document.getElementById("admin-link-container").classList.remove("hidden");
+        }
+        await loadDashboardFeed();
+      } catch (error) {
+        document.getElementById("welcome-title").textContent = "Não foi possível carregar seu painel.";
+        toast("Verifique sua conexão e recarregue a página.", { type: "danger" });
+        console.error("Erro ao carregar o painel:", error);
+      }
+    })();
+
+    logoutButton.addEventListener("click", async () => {
+      logoutButton.disabled = true;
+      try {
+        await logout();
+        clearProfileCache();
+        location.replace("/login.html");
+      } catch (error) {
+        logoutButton.disabled = false;
+        toast("Não foi possível sair. Tente novamente.", { type: "danger" });
+        console.error("Erro ao sair:", error);
+      }
     });
   </script>
 </body>

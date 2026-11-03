@@ -1,0 +1,24 @@
+{
+  "name": "LIDMED HUB",
+  "short_name": "LIDMED",
+  "description": "Plataforma de casos clínicos progressivos para estudantes de Medicina",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#FAFBFC",
+  "theme_color": "#0F4C5C",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "/assets/icons/app-icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    },
+    {
+      "src": "/assets/icons/app-icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "maskable"
+    }
+  ]
+}

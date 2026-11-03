@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#0F4C5C">
+  <meta name="robots" content="noindex">
+  <title>Gerenciar Categorias — Admin — LIDMED HUB</title>
+
+  <link rel="icon" href="/assets/icons/favicon.svg" type="image/svg+xml">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+  <script src="/js/ui/theme.js"></script>
+  <link rel="stylesheet" href="/css/tokens.css">
+  <link rel="stylesheet" href="/css/reset.css">
+  <link rel="stylesheet" href="/css/global.css">
+  <link rel="stylesheet" href="/css/pages/admin.css">
+  <script type="module" src="/js/ui/site-nav.js"></script>
+</head>
+<body class="admin-shell">
+  <header class="admin-header">
+    <div class="container">
+      <div>
+        <a href="/dashboard.html" class="brand">
+          <span class="brand-mark">L</span>
+          <span>LIDMED HUB</span>
+        </a>
+        <h1 class="admin-title">Gerenciar Categorias</h1>
+      </div>
+      <div class="admin-nav">
+        <a href="/admin/index.html" class="btn btn-ghost btn-sm">Dashboard</a>
+        <a href="/admin/usuarios.html" class="btn btn-ghost btn-sm">Usuários</a>
+        <a href="/admin/casos.html" class="btn btn-ghost btn-sm">Casos</a>
+        <a href="/admin/categorias.html" class="btn btn-primary btn-sm">Categorias</a>
+        <a href="/dashboard.html" class="btn btn-ghost btn-sm">Voltar</a>
+      </div>
+    </div>
+  </header>
+
+  <div class="admin-content container">
+    <div style="margin-bottom: var(--space-5);">
+      <button class="btn btn-primary" id="add-category-btn">+ Nova Categoria</button>
+    </div>
+
+    <div class="users-table-wrapper">
+      <table class="users-table">
+        <thead>
+          <tr>
+            <th>Nome</th>
+            <th>Slug</th>
+            <th>Ordem</th>
+            <th>Status</th>
+            <th class="text-right">Ações</th>
+          </tr>
+        </thead>
+        <tbody id="categories-tbody">
+          <tr>
+            <td colspan="5" class="table-empty">Carregando categorias...</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Modal Adicionar/Editar -->
+  <div id="category-modal" class="completion-modal" style="display: none;" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+    <div class="completion-content" style="text-align: left;">
+      <h3 style="margin-bottom: var(--space-4);" id="modal-title">Nova Categoria</h3>
+
+      <form id="category-form">
+        <div class="field">
+          <label for="cat-name">Nome <span class="required">*</span></label>
+          <input id="cat-name" type="text" required maxlength="100">
+        </div>
+
+        <div class="field">
+          <label for="cat-slug">Slug/ID <span class="required">*</span></label>
+          <input id="cat-slug" type="text" required maxlength="50" pattern="[a-z0-9-]+">
+          <span class="field-hint">Apenas letras minúsculas, números e hífen</span>
+        </div>
+
+        <div class="field">
+          <label for="cat-order">Ordem</label>
+          <input id="cat-order" type="number" min="0" value="0">
+        </div>
+
+        <div style="display: flex; gap: var(--space-3); margin-top: var(--space-5);">
+          <button type="button" class="btn btn-secondary" id="cancel-btn">Cancelar</button>
+          <button type="submit" class="btn btn-primary" id="save-cat-btn">Salvar</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script type="module">
+    import { requireAdmin } from "/js/guards.js";
+    import { listAllCategories, createCategory, updateCategory, deleteCategory } from "/js/catalog.js";
+    import { toast } from "/js/ui/toast.js";
+
+    let currentAdmin = null;
+    let categories = [];
+    let editingCategoryId = null;
+
+    const categoriesTableBody = document.getElementById("categories-tbody");
+    const categoryModal = document.getElementById("category-modal");
+    const categoryForm = document.getElementById("category-form");
+    const modalTitle = document.getElementById("modal-title");
+    let modalReturnFocus = null;
+
+    function openCategoryModal() {
+      modalReturnFocus = document.activeElement;
+      categoryModal.style.display = "flex";
+      document.getElementById("cat-name").focus();
+    }
+
+    function closeCategoryModal() {
+      categoryModal.style.display = "none";
+      if (modalReturnFocus instanceof HTMLElement) modalReturnFocus.focus();
+    }
+
+    (async () => {
+      const ctx = await requireAdmin();
+      if (!ctx) return;
+      currentAdmin = ctx.user;
+      loadCategories();
+    })();
+
+    async function loadCategories() {
+      try {
+        categories = await listAllCategories();
+        renderCategories(categories);
+      } catch (err) {
+        console.error(err);
+        categoriesTableBody.innerHTML = '<tr><td colspan="5" class="table-empty">Erro ao carregar categorias</td></tr>';
+        toast("Erro ao carregar categorias.", { type: "danger" });
+      }
+    }
+
+    function renderCategories(cats) {
+      if (cats.length === 0) {
+        categoriesTableBody.innerHTML = '<tr><td colspan="5" class="table-empty">Nenhuma categoria cadastrada</td></tr>';
+        return;
+      }
+
+      categoriesTableBody.innerHTML = cats.map(cat => `
+        <tr>
+          <td><strong>${cat.name}</strong></td>
+          <td><code>${cat.slug}</code></td>
+          <td>${cat.order}</td>
+          <td>
+            <span class="badge ${cat.active ? 'badge-approved' : 'badge-suspended'}">
+              ${cat.active ? 'Ativa' : 'Inativa'}
+            </span>
+          </td>
+          <td>
+            <div class="table-actions">
+              <button class="btn btn-ghost btn-sm" onclick="window.editCategory('${cat.id}')">Editar</button>
+              ${cat.active
+                ? `<button class="btn btn-danger btn-sm" onclick="window.deactivateCategory('${cat.id}')">Desativar</button>`
+                : `<button class="btn btn-success btn-sm" onclick="window.activateCategory('${cat.id}')">Ativar</button>`
+              }
+            </div>
+          </td>
+        </tr>
+      `).join('');
+    }
+
+    document.getElementById("add-category-btn").addEventListener("click", () => {
+      editingCategoryId = null;
+      modalTitle.textContent = "Nova Categoria";
+      categoryForm.reset();
+      openCategoryModal();
+    });
+
+    document.getElementById("cancel-btn").addEventListener("click", () => {
+      closeCategoryModal();
+    });
+
+    categoryModal.addEventListener("click", (event) => {
+      if (event.target === categoryModal) closeCategoryModal();
+    });
+
+    categoryModal.addEventListener("keydown", (event) => {
+      if (event.key === "Escape") {
+        closeCategoryModal();
+        return;
+      }
+
+      if (event.key !== "Tab") return;
+      const focusable = categoryModal.querySelectorAll('button:not(:disabled), input:not(:disabled), [href], [tabindex]:not([tabindex="-1"])');
+      const first = focusable[0];
+      const last = focusable[focusable.length - 1];
+
+      if (event.shiftKey && document.activeElement === first) {
+        event.preventDefault();
+        last.focus();
+      } else if (!event.shiftKey && document.activeElement === last) {
+        event.preventDefault();
+        first.focus();
+      }
+    });
+
+    categoryForm.addEventListener("submit", async (e) => {
+      e.preventDefault();
+
+      const name = document.getElementById("cat-name").value.trim();
+      const slug = document.getElementById("cat-slug").value.trim();
+      const order = parseInt(document.getElementById("cat-order").value);
+
+      const btn = document.getElementById("save-cat-btn");
+      btn.disabled = true;
+
+      try {
+        if (editingCategoryId) {
+          await updateCategory(editingCategoryId, { name, slug, order });
+          toast("Categoria atualizada!", { type: "success" });
+        } else {
+          await createCategory({ name, slug, order });
+          toast("Categoria criada!", { type: "success" });
+        }
+
+        closeCategoryModal();
+        await loadCategories();
+      } catch (err) {
+        console.error(err);
+        toast(err.message || "Erro ao salvar categoria.", { type: "danger" });
+      } finally {
+        btn.disabled = false;
+      }
+    });
+
+    window.editCategory = (categoryId) => {
+      const cat = categories.find(c => c.id === categoryId);
+      if (!cat) return;
+
+      editingCategoryId = categoryId;
+      modalTitle.textContent = "Editar Categoria";
+      document.getElementById("cat-name").value = cat.name;
+      document.getElementById("cat-slug").value = cat.slug;
+      document.getElementById("cat-order").value = cat.order;
+      openCategoryModal();
+    };
+
+    window.deactivateCategory = async (categoryId) => {
+      if (!confirm("Desativar esta categoria? Ela não aparecerá mais nos filtros.")) return;
+
+      try {
+        await deleteCategory(categoryId);
+        toast("Categoria desativada.", { type: "success" });
+        await loadCategories();
+      } catch (err) {
+        console.error(err);
+        toast("Erro ao desativar categoria.", { type: "danger" });
+      }
+    };
+
+    window.activateCategory = async (categoryId) => {
+      try {
+        await updateCategory(categoryId, { active: true });
+        toast("Categoria ativada.", { type: "success" });
+        await loadCategories();
+      } catch (err) {
+        console.error(err);
+        toast("Erro ao ativar categoria.", { type: "danger" });
+      }
+    };
+  </script>
+</body>
+</html>

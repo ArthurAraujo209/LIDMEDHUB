@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#0F4C5C">
+  <meta name="robots" content="noindex">
+  <title>Meus casos — LIDMED HUB</title>
+
+  <link rel="icon" href="/assets/icons/favicon.svg" type="image/svg+xml">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+  <script src="/js/ui/theme.js"></script>
+  <link rel="stylesheet" href="/css/tokens.css">
+  <link rel="stylesheet" href="/css/reset.css">
+  <link rel="stylesheet" href="/css/global.css">
+  <link rel="stylesheet" href="/css/pages/meus-casos.css">
+  <script type="module" src="/js/ui/site-nav.js"></script>
+</head>
+<body class="my-cases-shell">
+  <header class="app-header">
+    <div class="container">
+      <a href="/dashboard.html" class="brand">
+        <span class="brand-mark">L</span>
+        <span>LIDMED HUB</span>
+      </a>
+      <div class="row">
+        <a href="/meu-perfil.html" class="btn btn-ghost btn-sm">Perfil</a>
+        <button id="logout-btn" class="btn btn-secondary btn-sm">Sair</button>
+      </div>
+    </div>
+  </header>
+
+  <main class="container my-cases-main">
+    <header class="my-cases-header">
+      <div>
+        <p class="my-cases-eyebrow">Sua biblioteca</p>
+        <h1>Meus casos</h1>
+        <p class="text-muted">Acompanhe seus casos publicados, privados e rascunhos em um só lugar.</p>
+      </div>
+      <a class="btn btn-primary" href="/criar-caso.html">+ Criar caso</a>
+    </header>
+
+    <nav class="my-cases-tabs" aria-label="Filtrar meus casos">
+      <button class="my-cases-tab is-active" type="button" data-filter="all" aria-pressed="true">
+        Todos <span class="my-cases-tab-count" data-count="all">—</span>
+      </button>
+      <button class="my-cases-tab" type="button" data-filter="public" aria-pressed="false">
+        Públicos <span class="my-cases-tab-count" data-count="public">—</span>
+      </button>
+      <button class="my-cases-tab" type="button" data-filter="private" aria-pressed="false">
+        Privados <span class="my-cases-tab-count" data-count="private">—</span>
+      </button>
+      <button class="my-cases-tab" type="button" data-filter="draft" aria-pressed="false">
+        Rascunhos <span class="my-cases-tab-count" data-count="draft">—</span>
+      </button>
+    </nav>
+
+    <div class="my-cases-status" id="my-cases-status" role="status" aria-live="polite">
+      Carregando seus casos...
+    </div>
+    <section class="my-cases-grid" id="my-cases-grid" aria-label="Lista de casos"></section>
+    <div class="my-cases-load-more" id="my-cases-load-more" hidden>
+      <button class="btn btn-secondary" type="button" id="load-more-cases">Carregar mais casos</button>
+    </div>
+    <section class="my-cases-empty" id="my-cases-empty" hidden>
+      <div class="my-cases-empty-icon" aria-hidden="true">📋</div>
+      <h2 id="my-cases-empty-title">Você ainda não criou casos</h2>
+      <p id="my-cases-empty-description">Crie um caso clínico para ele aparecer nesta página.</p>
+      <a class="btn btn-primary" href="/criar-caso.html">Criar meu primeiro caso</a>
+    </section>
+  </main>
+
+  <script type="module" src="/js/pages/meus-casos.js"></script>
+</body>
+</html>

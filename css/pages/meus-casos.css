@@ -1,0 +1,211 @@
+.my-cases-shell {
+  min-height: 100vh;
+  background: var(--surface-0);
+}
+
+.my-cases-main {
+  padding-block: var(--space-8) var(--space-16);
+}
+
+.my-cases-header {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: var(--space-4);
+  margin-bottom: var(--space-6);
+}
+
+.my-cases-header h1 {
+  margin-bottom: var(--space-2);
+}
+
+.my-cases-eyebrow {
+  margin-bottom: var(--space-2);
+  color: var(--primary);
+  font-size: var(--text-xs);
+  font-weight: var(--fw-bold);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.my-cases-tabs {
+  display: flex;
+  gap: var(--space-2);
+  margin-bottom: var(--space-5);
+  overflow-x: auto;
+  border-bottom: 1px solid var(--border);
+}
+
+.my-cases-tab {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  flex: 0 0 auto;
+  min-height: 46px;
+  padding: var(--space-2) var(--space-3);
+  color: var(--text-subtle);
+  border-bottom: 3px solid transparent;
+  font-size: var(--text-sm);
+  font-weight: var(--fw-medium);
+}
+
+.my-cases-tab:hover,
+.my-cases-tab.is-active {
+  color: var(--primary);
+}
+
+.my-cases-tab.is-active {
+  border-bottom-color: var(--primary);
+  font-weight: var(--fw-semibold);
+}
+
+.my-cases-tab-count {
+  min-width: 1.6em;
+  padding: 1px 6px;
+  color: var(--text-subtle);
+  background: var(--surface-2);
+  border-radius: var(--radius-full);
+  text-align: center;
+  font-size: var(--text-xs);
+}
+
+.my-cases-status {
+  min-height: 24px;
+  margin-bottom: var(--space-3);
+  color: var(--text-subtle);
+  font-size: var(--text-sm);
+}
+
+.my-cases-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 310px), 1fr));
+  gap: var(--space-4);
+}
+
+.my-case-card {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  padding: var(--space-5);
+  color: var(--text);
+  background: var(--surface-1);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+}
+
+.my-case-card h2 {
+  margin: var(--space-3) 0 var(--space-2);
+  font-size: var(--text-lg);
+  overflow-wrap: anywhere;
+}
+
+.my-case-card p {
+  color: var(--text-subtle);
+  font-size: var(--text-sm);
+}
+
+.my-case-card-meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.my-case-badge {
+  display: inline-flex;
+  align-items: center;
+  width: fit-content;
+  min-height: 24px;
+  padding: 2px var(--space-2);
+  color: var(--primary);
+  background: var(--primary-alpha);
+  border-radius: var(--radius-full);
+  font-size: var(--text-xs);
+  font-weight: var(--fw-semibold);
+}
+
+.my-case-badge.is-private {
+  color: var(--warning);
+  background: var(--warning-alpha);
+}
+
+.my-case-badge.is-draft {
+  color: var(--text-subtle);
+  background: var(--surface-2);
+}
+
+.my-case-card-stats {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+  margin-top: auto;
+  padding-top: var(--space-4);
+  color: var(--text-subtle);
+  font-size: var(--text-xs);
+}
+
+.my-case-card-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  margin-top: var(--space-4);
+  padding-top: var(--space-3);
+  border-top: 1px solid var(--border);
+}
+
+.my-cases-empty {
+  padding: var(--space-12) var(--space-4);
+  text-align: center;
+  background: var(--surface-1);
+  border: 1px dashed var(--border);
+  border-radius: var(--radius-lg);
+}
+
+.my-cases-empty[hidden] {
+  display: none;
+}
+
+.my-cases-empty-icon {
+  margin-bottom: var(--space-3);
+  font-size: var(--text-3xl);
+}
+
+.my-cases-empty h2 {
+  margin-bottom: var(--space-2);
+  font-size: var(--text-lg);
+}
+
+.my-cases-empty p {
+  margin-bottom: var(--space-4);
+  color: var(--text-subtle);
+}
+
+.my-cases-load-more {
+  display: flex;
+  justify-content: center;
+  padding-top: var(--space-6);
+}
+
+.my-cases-load-more[hidden] {
+  display: none;
+}
+
+@media (max-width: 640px) {
+  .my-cases-main {
+    padding-top: var(--space-6);
+  }
+
+  .my-cases-header {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .my-cases-header .btn {
+    width: 100%;
+  }
+
+  .my-cases-grid {
+    grid-template-columns: 1fr;
+  }
+}

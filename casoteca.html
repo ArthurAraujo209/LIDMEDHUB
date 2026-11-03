@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#0F4C5C">
+  <title>Casoteca — LIDMED HUB</title>
+
+  <link rel="icon" href="/assets/icons/favicon.svg" type="image/svg+xml">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+  <script src="/js/ui/theme.js"></script>
+  <link rel="stylesheet" href="/css/tokens.css">
+  <link rel="stylesheet" href="/css/reset.css">
+  <link rel="stylesheet" href="/css/global.css">
+  <link rel="stylesheet" href="/css/pages/casoteca.css">
+  <script type="module" src="/js/ui/site-nav.js"></script>
+</head>
+<body class="catalog-shell">
+  <header class="app-header">
+    <div class="container">
+      <a href="/dashboard.html" class="brand">
+        <span class="brand-mark">L</span>
+        <span>LIDMED HUB</span>
+      </a>
+      <div class="row">
+        <a href="/meu-perfil.html" class="btn btn-ghost btn-sm" id="profile-link">Perfil</a>
+        <button id="logout-btn" class="btn btn-secondary btn-sm">Sair</button>
+      </div>
+    </div>
+  </header>
+
+  <div class="catalog-header">
+    <div class="container">
+      <h1 class="catalog-title">Casoteca</h1>
+      <p class="catalog-subtitle">Explore e resolva casos clínicos compartilhados pela comunidade</p>
+    </div>
+  </div>
+
+  <main class="container">
+    <div class="catalog-filters">
+      <input type="search" id="search-input" aria-label="Buscar casos por título ou conteúdo" placeholder="Buscar casos...">
+
+      <select id="specialty-filter" aria-label="Filtrar por especialidade">
+        <option value="">Todas as especialidades</option>
+      </select>
+
+      <select id="difficulty-filter" aria-label="Filtrar por dificuldade">
+        <option value="">Todas as dificuldades</option>
+        <option value="1">1 - Fácil</option>
+        <option value="2">2</option>
+        <option value="3">3 - Médio</option>
+        <option value="4">4</option>
+        <option value="5">5 - Difícil</option>
+      </select>
+    </div>
+
+    <div class="sort-bar">
+      <div>
+        <span class="text-sm text-subtle" id="results-count">Carregando casos...</span>
+      </div>
+      <div class="sort-options">
+        <button class="sort-btn is-active" data-sort="recent">Recentes</button>
+        <button class="sort-btn" data-sort="popular">Populares</button>
+        <button class="sort-btn" data-sort="rating">Melhor avaliados</button>
+      </div>
+    </div>
+
+    <div class="cases-grid" id="cases-grid">
+      <!-- Cards serão inseridos aqui -->
+    </div>
+
+    <div class="load-more-container" id="load-more-container" style="display: none;">
+      <button class="btn btn-secondary" id="load-more-btn">Carregar mais</button>
+    </div>
+
+    <div class="cases-empty" id="empty-state" style="display: none;">
+      <div class="cases-empty-icon">📋</div>
+      <p><strong>Nenhum caso encontrado</strong></p>
+      <p class="text-sm text-subtle">Tente ajustar os filtros</p>
+    </div>
+  </main>
+
+  <script type="module" src="/js/pages/casoteca.js"></script>
+</body>
+</html>

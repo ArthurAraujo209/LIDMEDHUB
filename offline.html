@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#0F4C5C">
+  <title>Você está offline — LIDMED HUB</title>
+
+  <link rel="icon" href="/assets/icons/favicon.svg" type="image/svg+xml">
+  <script src="/js/ui/theme.js"></script>
+  <link rel="stylesheet" href="/css/tokens.css">
+  <link rel="stylesheet" href="/css/reset.css">
+  <link rel="stylesheet" href="/css/global.css">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      background: #FAFBFC;
+      color: #1A1D1F;
+      padding: 1rem;
+      text-align: center;
+    }
+    .container { max-width: 500px; }
+    .icon {
+      font-size: 4rem;
+      margin-bottom: 1.5rem;
+      opacity: 0.5;
+    }
+    h1 {
+      font-size: 1.5rem;
+      margin-bottom: 0.75rem;
+      color: #0F4C5C;
+    }
+    p {
+      color: #6C7380;
+      line-height: 1.6;
+      margin-bottom: 2rem;
+    }
+    .btn {
+      display: inline-block;
+      padding: 0.75rem 1.5rem;
+      background: #0F4C5C;
+      color: white;
+      text-decoration: none;
+      border-radius: 0.5rem;
+      font-weight: 500;
+      transition: background 0.2s;
+    }
+    .btn:hover {
+      background: #0D3E4C;
+    }
+    .site-utility-page {
+      display: block;
+      padding: 0;
+      text-align: center;
+    }
+    .site-utility-page > .container {
+      width: 100%;
+      max-width: 500px;
+      margin: 4rem auto 0;
+      padding-inline: 1rem;
+    }
+  </style>
+</head>
+<body class="site-utility-page">
+  <header class="app-header">
+    <div class="container">
+      <a href="/dashboard.html" class="brand" aria-label="LIDMED HUB, ir para o painel">
+        <span class="brand-mark" aria-hidden="true">L</span>
+        <span>LIDMED HUB</span>
+      </a>
+      <nav class="site-nav" aria-label="Navegação principal">
+        <div class="site-nav-links">
+          <a href="/dashboard.html" class="site-nav-link">Painel</a>
+          <a href="/casoteca.html" class="site-nav-link">Casoteca</a>
+          <a href="/criar-caso.html" class="site-nav-link">Criar caso</a>
+          <a href="/meus-casos.html" class="site-nav-link">Meus casos</a>
+          <a href="/historico.html" class="site-nav-link">Histórico</a>
+          <a href="/favoritos.html" class="site-nav-link">Favoritos</a>
+        </div>
+      </nav>
+    </div>
+  </header>
+  <div class="container">
+    <div class="icon">📡</div>
+    <h1>Você está offline</h1>
+    <p>
+      Não foi possível conectar ao LIDMED HUB. Verifique sua conexão com a internet
+      e tente novamente.
+    </p>
+    <button class="btn" onclick="location.reload()">Tentar novamente</button>
+  </div>
+</body>
+</html>

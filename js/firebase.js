@@ -1,16 +1,15 @@
 // Inicialização central do Firebase (modular SDK 10.x via CDN ESM).
-// Importe `app`, `auth`, `db`, `storage` a partir deste módulo.
+// Importe `app`, `auth`, `db` a partir deste módulo.
+// IMPORTANTE: Storage NÃO está disponível (Firebase Spark, projeto novo).
 
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 import { getAuth } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 import { getFirestore } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
-import { getStorage } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-storage.js";
 import { firebaseConfig } from "./config.js";
 
 export const app = initializeApp(firebaseConfig);
 export const auth = getAuth(app);
 export const db = getFirestore(app);
-export const storage = getStorage(app);
 
 // Reexports dos helpers mais usados, para evitar repetição de URL longa nos
 // módulos de feature.
@@ -48,10 +47,3 @@ export {
   writeBatch,
   runTransaction
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
-
-export {
-  ref as storageRef,
-  uploadBytesResumable,
-  getDownloadURL,
-  deleteObject
-} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-storage.js";

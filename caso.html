@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#0F4C5C">
+  <meta name="robots" content="noindex">
+  <title>Resolver Caso — LIDMED HUB</title>
+
+  <link rel="icon" href="/assets/icons/favicon.svg" type="image/svg+xml">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+  <script src="/js/ui/theme.js"></script>
+  <link rel="stylesheet" href="/css/tokens.css">
+  <link rel="stylesheet" href="/css/reset.css">
+  <link rel="stylesheet" href="/css/global.css">
+  <link rel="stylesheet" href="/css/pages/caso.css">
+  <script type="module" src="/js/ui/site-nav.js"></script>
+</head>
+<body class="case-shell">
+  <header class="app-header">
+    <div class="container">
+      <a href="/casoteca.html" class="brand">
+        <span class="brand-mark">L</span>
+        <span>LIDMED HUB</span>
+      </a>
+      <div class="row">
+        <a href="/casoteca.html" class="btn btn-ghost btn-sm">← Voltar</a>
+      </div>
+    </div>
+  </header>
+
+  <main class="case-container" id="case-container">
+    <div id="loading-state" style="text-align: center; padding: var(--space-8);">
+      <p>Carregando caso...</p>
+    </div>
+
+    <div id="error-state" style="display: none; text-align: center; padding: var(--space-8);">
+      <h2>Caso não encontrado</h2>
+      <p class="text-muted">O caso não existe ou não está disponível.</p>
+      <a href="/casoteca.html" class="btn btn-primary" style="margin-top: var(--space-4);">Voltar à Casoteca</a>
+    </div>
+
+    <div id="case-content" style="display: none;">
+      <!-- Case Header -->
+      <div class="case-header">
+        <div class="case-header-top">
+          <div class="case-title-block">
+            <h1 id="case-title">Carregando...</h1>
+            <div class="case-meta-row" id="case-meta"></div>
+          </div>
+          <button id="favorite-btn" class="btn btn-ghost">♡</button>
+        </div>
+
+        <div class="case-progress">
+          <div style="display: flex; justify-content: space-between; margin-bottom: var(--space-2);">
+            <span class="text-sm">Progresso</span>
+            <span class="text-sm" id="progress-text">Etapa 0 de 0</span>
+          </div>
+          <div class="case-progress-bar">
+            <div class="case-progress-fill" id="progress-fill" style="width: 0%"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Steps Container -->
+      <div id="steps-container"></div>
+
+      <!-- Hypothesis Panel -->
+      <div class="hypothesis-panel">
+        <div class="hypothesis-container">
+          <div id="hypothesis-feedback" class="hypothesis-feedback" style="display: none;"></div>
+
+          <form id="hypothesis-form" class="hypothesis-form">
+            <div class="score-preview">
+              Pontuação atual: <span class="score-preview-value" id="score-preview">100</span>
+            </div>
+
+            <div id="hypothesis-input-container">
+              <!-- Será preenchido dinamicamente -->
+            </div>
+
+            <div class="hypothesis-actions">
+              <button type="button" class="btn btn-secondary" id="next-step-btn">
+                Solicitar próxima informação
+              </button>
+              <button type="button" class="btn btn-ghost" id="hint-btn">
+                💡 Solicitar dica (-15 pts)
+              </button>
+              <button type="submit" class="btn btn-primary" id="submit-hypothesis-btn">
+                Submeter hipótese
+              </button>
+              <button type="button" class="btn btn-success" id="finish-btn" style="display: none;">
+                Encerrar caso
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <!-- Completion Modal -->
+  <div id="completion-modal" class="completion-modal" style="display: none;">
+    <div class="completion-content">
+      <div class="completion-icon">🎉</div>
+      <div class="completion-score" id="final-score">100</div>
+      <div class="completion-message" id="completion-message">Parabéns!</div>
+
+      <div class="completion-stats">
+        <div>
+          <div class="completion-stat-label">Dicas usadas</div>
+          <div class="completion-stat-value" id="hints-used">0</div>
+        </div>
+        <div>
+          <div class="completion-stat-label">Tempo</div>
+          <div class="completion-stat-value" id="time-taken">0min</div>
+        </div>
+      </div>
+
+      <div class="completion-actions">
+        <a href="/casoteca.html" class="btn btn-secondary">Voltar à Casoteca</a>
+        <button id="rate-btn" class="btn btn-primary">Avaliar caso</button>
+      </div>
+    </div>
+  </div>
+
+  <script type="module" src="/js/pages/caso.js"></script>
+</body>
+</html>
