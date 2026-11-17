@@ -1,3 +1,6 @@
+import { auth, onAuthStateChanged } from "../firebase.js";
+import { getUserDoc } from "../auth.js";
+
 const LINKS = [
   { label: "Painel", href: "/dashboard.html", matches: ["/dashboard.html"] },
   { label: "Casoteca", href: "/casoteca.html", matches: ["/casoteca.html", "/caso.html"] },
@@ -6,6 +9,9 @@ const LINKS = [
   { label: "Histórico", href: "/historico.html", matches: ["/historico.html"] },
   { label: "Favoritos", href: "/favoritos.html", matches: ["/favoritos.html"] }
 ];
+
+let accountActions = null;
+let authStateRequest = 0;
 
 function createLink(label, href, className) {
   const link = document.createElement("a");
@@ -34,10 +40,17 @@ function installSiteNavigation() {
   }
   brand.setAttribute("aria-label", "LIDMED HUB, ir para o painel");
 
-  const actions = container.querySelector(":scope > .row, :scope > nav");
-  if (actions) {
-    actions.classList.add("site-nav-actions");
-    if (actions.tagName === "NAV") actions.setAttribute("aria-label", "Ações da conta");
+  const isPublicEntryPage = ["/", "/index.html", "/index-futuramente.html", "/login.html", "/cadastro.html", "/404.html"]
+    .includes(location.pathname);
+  accountActions = container.querySelector(":scope > .row, :scope > nav");
+  if (!accountActions && !isPublicEntryPage) {
+    accountActions = document.createElement("div");
+    accountActions.className = "site-nav-actions";
+  }
+  if (accountActions) {
+    accountActions.classList.add("site-nav-actions");
+    accountActions.querySelectorAll('a[href="/meu-perfil.html"]').forEach(link => link.remove());
+    if (accountActions.tagName === "NAV") accountActions.setAttribute("aria-label", "Ações da conta");
   }
 
   const nav = document.createElement("nav");
@@ -55,9 +68,7 @@ function installSiteNavigation() {
   });
   nav.append(navLinks);
 
-  const isPublicEntryPage = ["/", "/index.html", "/index-futuramente.html", "/login.html", "/cadastro.html", "/404.html"]
-    .includes(location.pathname);
-  if (!actions && !existingHeader && isPublicEntryPage) {
+  if (!accountActions && isPublicEntryPage) {
     const authActions = document.createElement("div");
     authActions.className = "site-nav-actions";
     authActions.append(
@@ -65,8 +76,9 @@ function installSiteNavigation() {
       createLink("Criar conta", "/cadastro.html", "btn btn-primary btn-sm")
     );
     container.replaceChildren(brand, nav, authActions);
+    accountActions = authActions;
   } else {
-    container.replaceChildren(brand, nav, ...(actions ? [actions] : []));
+    container.replaceChildren(brand, nav, ...(accountActions ? [accountActions] : []));
   }
 
   if (!existingHeader) {
@@ -80,3 +92,71 @@ function installSiteNavigation() {
 }
 
 installSiteNavigation();
+onAuthStateChanged(auth, async user => {
+  const requestId = ++authStateRequest;
+  accountActions?.querySelector("[data-site-profile]")?.remove();
+  if (!user || !accountActions) return;
+
+  accountActions.querySelectorAll('a[href="/login.html"], a[href="/cadastro.html"]').forEach(link => link.remove());
+
+  let profile = null;
+  try {
+    profile = await getUserDoc(user.uid);
+  } catch (error) {
+    console.error("Não foi possível carregar a foto do perfil no cabeçalho.", error);
+  }
+  if (requestId !== authStateRequest) return;
+
+  const profileLink = createLink("Perfil", "/meu-perfil.html", "site-profile-link");
+  profileLink.dataset.siteProfile = "true";
+  profileLink.setAttribute("aria-label", "Abrir perfil");
+
+  const photoURL = profile?.photoURL || user.photoURL;
+  profileLink.prepend(createProfileAvatar(photoURL));
+
+  const logoutButton = accountActions.querySelector("#logout-btn");
+  accountActions.insertBefore(profileLink, logoutButton || null);
+});
+
+window.addEventListener("profile-updated", event => {
+  const avatar = accountActions?.querySelector("[data-site-profile] .site-profile-avatar");
+  if (!avatar) return;
+  avatar.replaceWith(createProfileAvatar(event.detail?.photoURL || ""));
+});
+
+function createProfileAvatar(photoURL) {
+  const avatar = document.createElement("span");
+  avatar.className = "site-profile-avatar";
+  avatar.setAttribute("aria-hidden", "true");
+  if (!photoURL) {
+    avatar.appendChild(createDefaultAvatar());
+    return avatar;
+  }
+
+  const image = document.createElement("img");
+  image.src = photoURL;
+  image.alt = "";
+  image.referrerPolicy = "no-referrer";
+  image.addEventListener("error", () => {
+    avatar.replaceChildren(createDefaultAvatar());
+  }, { once: true });
+  avatar.appendChild(image);
+  return avatar;
+}
+
+function createDefaultAvatar() {
+  const icon = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+  icon.setAttribute("viewBox", "0 0 24 24");
+  icon.setAttribute("fill", "none");
+  icon.setAttribute("stroke", "currentColor");
+  icon.setAttribute("stroke-width", "1.8");
+  icon.setAttribute("aria-hidden", "true");
+  const head = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+  head.setAttribute("cx", "12");
+  head.setAttribute("cy", "8");
+  head.setAttribute("r", "3.25");
+  const shoulders = document.createElementNS("http://www.w3.org/2000/svg", "path");
+  shoulders.setAttribute("d", "M5.5 20a6.5 6.5 0 0 1 13 0");
+  icon.append(head, shoulders);
+  return icon;
+}

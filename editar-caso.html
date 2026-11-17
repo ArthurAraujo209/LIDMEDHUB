@@ -50,29 +50,9 @@
           <p class="wizard-subtitle">Modificar informações do caso</p>
         </div>
 
-        <div class="anonymization-warning" style="margin-bottom: var(--space-5);">
-          <h4>Tipo de Edição</h4>
-          <div class="role-options">
-            <div class="role-option">
-              <input type="radio" id="edit-light" name="editType" value="light" checked>
-              <label for="edit-light">
-                <strong>Edição Leve</strong><br>
-                <small>Correção de typos, formatação. Tentativas existentes continuam válidas.</small>
-              </label>
-            </div>
-            <div class="role-option">
-              <input type="radio" id="edit-structural" name="editType" value="structural">
-              <label for="edit-structural">
-                <strong>Edição Estrutural</strong><br>
-                <small>Novo passo, diagnóstico alterado. Cria nova versão do caso.</small>
-              </label>
-            </div>
-          </div>
-        </div>
-
         <form id="case-form">
           <div class="wizard-content">
-            <h3>Metadados</h3>
+            <h3>Dados Gerais</h3>
 
             <div class="field">
               <label for="title">Título <span class="required">*</span></label>
@@ -83,6 +63,25 @@
               <label for="specialty">Especialidade <span class="required">*</span></label>
               <select id="specialty" name="specialty" required>
                 <option value="">Selecione...</option>
+              </select>
+            </div>
+
+            <div class="field">
+              <label for="special-conditions">Condições especiais do paciente <span class="text-subtle">(opcional)</span></label>
+              <textarea id="special-conditions" name="specialConditions" rows="2" maxlength="500"
+                        placeholder="Ex.: gestante de 24 semanas, imunossuprimido"></textarea>
+              <span class="field-hint">Inclua apenas condições relevantes para o caso, sem dados que identifiquem o paciente.</span>
+            </div>
+
+            <div class="field">
+              <label for="scenario">Cenário de atendimento <span class="required">*</span></label>
+              <select id="scenario" name="scenario" required>
+                <option value="">Selecione...</option>
+                <option value="Atenção primária (UBS)">Atenção primária (UBS)</option>
+                <option value="Ambulatório">Ambulatório</option>
+                <option value="Pronto atendimento">Pronto atendimento</option>
+                <option value="Emergência">Emergência</option>
+                <option value="Internação hospitalar">Internação hospitalar</option>
               </select>
             </div>
 
@@ -135,16 +134,56 @@
           </div>
 
           <div class="wizard-content" style="margin-top: var(--space-4);">
-            <h3>Conteúdo do Caso</h3>
+            <h3>Fases e informações clínicas</h3>
             <p class="text-sm text-muted" style="margin-bottom: var(--space-4);">
-              A edição de conteúdo (etapas, diagnóstico) está disponível apenas em edições estruturais.
-              Para alterar, selecione "Edição Estrutural" acima.
+              Edite os dados existentes, adicione informações ou crie novas fases. Alterações em casos publicados criam uma nova versão.
             </p>
-            <div id="steps-preview"></div>
+            <div id="steps-container" class="dynamic-steps"></div>
+            <button type="button" class="btn btn-secondary btn-block btn-add-step" id="add-step-btn">
+              + Adicionar fase
+            </button>
+          </div>
+
+          <div class="wizard-content" style="margin-top: var(--space-4);">
+            <h3>Diagnóstico e resposta esperada</h3>
+
+            <div class="field">
+              <label for="diagnosis">Diagnóstico correto do caso <span class="required">*</span></label>
+              <textarea id="diagnosis" name="diagnosis" rows="3" required placeholder="Informe o diagnóstico final"></textarea>
+            </div>
+
+            <div class="field">
+              <label for="diagnosis-keywords-input">Outras respostas diagnósticas aceitas</label>
+              <div class="tags-input-wrapper" id="diagnosis-keywords-wrapper">
+                <input type="text" class="tags-input" id="diagnosis-keywords-input" placeholder="Ex: pneumonia bacteriana">
+              </div>
+              <span class="field-hint">O diagnóstico acima já será aceito. Digite sinônimos ou outras respostas corretas e pressione Enter.</span>
+            </div>
+
+            <div class="field">
+              <label for="option-set-input">Alternativas de diagnóstico para escolher (opcional)</label>
+              <div class="tags-input-wrapper" id="option-set-wrapper">
+                <input type="text" class="tags-input" id="option-set-input" placeholder="Ex: pneumonia viral">
+              </div>
+              <span class="field-hint"><b>Sem alternativas</b>, a pessoa digita o diagnóstico. <br>
+                 <b>Com alternativas</b>, ela escolhe uma delas. Você precisa incluir a(s) resposta(s) correta(s) no "Outras respostas diagnósticas aceitas".</span>
+            </div>
+
+            <div class="field">
+              <label for="conduct">Conduta / manejo clínico (opcional)</label>
+              <textarea id="conduct" name="conduct" rows="4" placeholder="Conduta médica adotada"></textarea>
+            </div>
+
+            <div class="field">
+              <label for="explanation">Explicação acadêmica</label>
+              <textarea id="explanation" name="explanation" rows="6" placeholder="Explicação detalhada, fisiopatologia, diferenciais"></textarea>
+            </div>
           </div>
 
           <div class="wizard-actions" style="margin-top: var(--space-5);">
-            <div class="wizard-actions-left"></div>
+            <div class="wizard-actions-left">
+              <button type="button" class="btn btn-danger" id="delete-case-btn">Excluir caso</button>
+            </div>
             <div class="wizard-actions-right">
               <button type="submit" class="btn btn-primary" id="save-btn">Salvar Alterações</button>
             </div>

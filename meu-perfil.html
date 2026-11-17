@@ -27,9 +27,6 @@
         <span>LIDMED HUB</span>
       </a>
       <div class="row">
-        <a href="/meu-perfil.html" class="btn btn-ghost btn-sm" aria-label="Meu perfil">
-          <span id="header-public-name">—</span>
-        </a>
         <button id="logout-btn" class="btn btn-secondary btn-sm">Sair</button>
       </div>
     </div>
@@ -160,7 +157,6 @@
     const avatarTextEl = document.getElementById("avatar-text");
     const displayNameEl = document.getElementById("display-name");
     const roleBadgeEl = document.getElementById("role-badge");
-    const headerPublicNameEl = document.getElementById("header-public-name");
 
     const statCreatedEl = document.getElementById("stat-created");
     const statSolvedEl = document.getElementById("stat-solved");
@@ -196,7 +192,6 @@
       currentProfile = profile;
 
       displayNameEl.textContent = profile.displayName || "Usuário";
-      headerPublicNameEl.textContent = profile.publicName || "?";
       roleBadgeEl.textContent = ROLE_LABEL[profile.role] || profile.role;
 
       // Avatar
@@ -298,6 +293,7 @@
       try {
         const photoURL = await uploadImage(pendingProfilePhoto, currentUser, "profile");
         await updateProfile(currentUser.uid, { photoURL });
+        window.dispatchEvent(new CustomEvent("profile-updated", { detail: { photoURL } }));
         photoURLInput.value = photoURL;
         clearProfileCache(currentUser.uid);
         const context = await requireApproved({ redirect: "/meu-perfil.html" });

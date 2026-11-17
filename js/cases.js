@@ -4,6 +4,7 @@ import {
   getDoc,
   setDoc,
   updateDoc,
+  deleteDoc,
   collection,
   addDoc,
   getDocs,
@@ -24,6 +25,8 @@ export async function createCase(authorId, caseData) {
   const {
     title,
     specialty,
+    specialConditions = "",
+    scenario = "",
     tags = [],
     difficulty,
     visibility,
@@ -44,6 +47,8 @@ export async function createCase(authorId, caseData) {
     authorPublicName,
     title,
     specialty,
+    specialConditions,
+    scenario,
     tags,
     difficulty,
     visibility,
@@ -63,15 +68,23 @@ export async function createCase(authorId, caseData) {
     publishedAt: null
   };
 
+  if (!caseData.publish) {
+    Object.assign(caseDoc, { steps, diagnosis, conduct, explanation });
+  }
+
   const caseRef = await addDoc(collection(db, "cases"), caseDoc);
 
   // Se for para publicar, cria a versão
   if (caseData.publish) {
     await publishCaseVersion(caseRef.id, {
       steps,
+      specialConditions,
+      scenario,
       diagnosis,
       conduct,
-      explanation
+      explanation,
+      diagnosisKeywords,
+      optionSet
     });
 
     await updateDoc(caseRef, {
@@ -88,7 +101,7 @@ export async function createCase(authorId, caseData) {
  * Publica uma versão do caso.
  */
 async function publishCaseVersion(caseId, versionData) {
-  const { steps, diagnosis, conduct, explanation } = versionData;
+  const { steps, specialConditions = "", scenario = "", diagnosis, conduct, explanation, diagnosisKeywords, optionSet } = versionData;
 
   const caseDoc = await getDoc(doc(db, "cases", caseId));
   const currentVersion = caseDoc.data().currentVersion || 0;
@@ -96,9 +109,13 @@ async function publishCaseVersion(caseId, versionData) {
 
   await setDoc(doc(db, "cases", caseId, "versions", String(newVersion)), {
     steps,
+    specialConditions,
+    scenario,
     diagnosis,
     conduct,
     explanation,
+    diagnosisKeywords: diagnosisKeywords || [],
+    optionSet: optionSet || [],
     publishedAt: serverTimestamp(),
     supersededAt: null
   });
@@ -109,7 +126,7 @@ async function publishCaseVersion(caseId, versionData) {
 /**
  * Atualiza um caso existente.
  */
-export async function updateCase(caseId, updates, isStructural = false) {
+export async function updateCase(caseId, updates) {
   const caseRef = doc(db, "cases", caseId);
   const caseDoc = await getDoc(caseRef);
 
@@ -118,13 +135,23 @@ export async function updateCase(caseId, updates, isStructural = false) {
   }
 
   const currentData = caseDoc.data();
+  const caseUpdates = {
+    title: updates.title,
+    specialty: updates.specialty,
+    specialConditions: updates.specialConditions || "",
+    scenario: updates.scenario || "",
+    tags: updates.tags || [],
+    difficulty: updates.difficulty,
+    visibility: updates.visibility,
+    diagnosisKeywords: updates.diagnosisKeywords || [],
+    optionSet: updates.optionSet || [],
+    updatedAt: serverTimestamp()
+  };
 
-  // Atualização estrutural: nova versão
-  if (isStructural && currentData.status === "published") {
-    const { steps, diagnosis, conduct, explanation } = updates;
-
-    // Marca versão antiga como superseded
+  if (currentData.status === "published") {
     const currentVersion = currentData.currentVersion;
+    const newVersion = await publishCaseVersion(caseId, updates);
+
     if (currentVersion > 0) {
       await updateDoc(
         doc(db, "cases", caseId, "versions", String(currentVersion)),
@@ -132,34 +159,58 @@ export async function updateCase(caseId, updates, isStructural = false) {
       );
     }
 
-    // Cria nova versão
-    const newVersion = await publishCaseVersion(caseId, {
-      steps,
-      diagnosis,
-      conduct,
-      explanation
-    });
-
     await updateDoc(caseRef, {
+      ...caseUpdates,
       currentVersion: newVersion,
-      stepCount: steps.length,
-      diagnosisKeywords: updates.diagnosisKeywords || currentData.diagnosisKeywords,
-      optionSet: updates.optionSet || currentData.optionSet,
-      updatedAt: serverTimestamp()
+      stepCount: updates.steps.length
     });
   } else {
-    // Atualização leve: apenas metadata
-    const allowedUpdates = {
-      title: updates.title,
-      specialty: updates.specialty,
-      tags: updates.tags,
-      difficulty: updates.difficulty,
-      visibility: updates.visibility,
-      updatedAt: serverTimestamp()
-    };
-
-    await updateDoc(caseRef, allowedUpdates);
+    await updateDoc(caseRef, {
+      ...caseUpdates,
+      steps: updates.steps,
+      specialConditions: updates.specialConditions || "",
+      scenario: updates.scenario || "",
+      diagnosis: updates.diagnosis,
+      conduct: updates.conduct,
+      explanation: updates.explanation,
+      stepCount: updates.steps.length
+    });
   }
+}
+
+/**
+ * Remove um caso do autor e os documentos vinculados a ele.
+ */
+export async function deleteCase(caseId, userId, isAdmin = false) {
+  const caseRef = doc(db, "cases", caseId);
+  const caseDoc = await getDoc(caseRef);
+
+  if (!caseDoc.exists()) {
+    throw new Error("Caso não encontrado");
+  }
+  if (caseDoc.data().authorId !== userId && !isAdmin) {
+    throw new Error("Você não tem permissão para excluir este caso");
+  }
+
+  const [versions, ratings, favorites] = await Promise.all([
+    getDocs(collection(db, "cases", caseId, "versions")),
+    getDocs(query(collection(db, "ratings"), where("caseId", "==", caseId))),
+    getDocs(query(collection(db, "favorites"), where("caseId", "==", caseId)))
+  ]);
+
+  const relatedReferences = [
+    ...versions.docs,
+    ...ratings.docs,
+    ...favorites.docs
+  ].map(document => document.ref);
+
+  for (let index = 0; index < relatedReferences.length; index += 450) {
+    const batch = writeBatch(db);
+    relatedReferences.slice(index, index + 450).forEach(reference => batch.delete(reference));
+    await batch.commit();
+  }
+
+  await deleteDoc(caseRef);
 }
 
 /**
@@ -222,6 +273,8 @@ export async function publishCase(caseId, versionData) {
   await publishCaseVersion(caseId, versionData);
 
   await updateDoc(caseRef, {
+    specialConditions: versionData.specialConditions || "",
+    scenario: versionData.scenario || "",
     status: "published",
     currentVersion: 1,
     publishedAt: serverTimestamp(),

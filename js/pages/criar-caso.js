@@ -5,13 +5,15 @@ import { detectSensitive } from "../utils/detectSensitive.js";
 import { cropImage } from "../ui/image-editor.js";
 import { uploadImage } from "../utils/uploadImage.js";
 import { toast } from "../ui/toast.js";
+import { CLINICAL_FIELD_OPTIONS } from "../clinical-fields.js";
 
 let currentStep = 1;
 let currentUser = null;
 let tags = [];
 let diagnosisKeywords = [];
 let optionSet = [];
-let nextStepId = 0;
+let nextClinicalFieldId = 0;
+let nextStepId = 2;
 let categories = [];
 const MAX_IMAGE_BYTES = 3 * 1024 * 1024;
 const ALLOWED_IMAGE_TYPES = ["image/jpeg", "image/png", "image/webp"];
@@ -33,8 +35,7 @@ const pendingStepImages = new WeakMap();
     specialtySelect.appendChild(option);
   });
 
-  // Adiciona primeira etapa
-  addStep();
+  addClinicalSteps();
 })();
 
 // Tags input
@@ -84,77 +85,38 @@ setupTagsInput("tags-wrapper", "tags-input", tags);
 setupTagsInput("diagnosis-keywords-wrapper", "diagnosis-keywords-input", diagnosisKeywords);
 setupTagsInput("option-set-wrapper", "option-set-input", optionSet);
 
-// Steps dinâmicos
-function addStep() {
-  const stepIndex = nextStepId++;
-
+// Etapas clínicas do caso
+function addClinicalSteps() {
   const container = document.getElementById("steps-container");
+  const firstStep = createClinicalStep(0, "Etapa 1 — Queixa principal");
+  addClinicalField(firstStep, "queixa", "Queixa principal", "Descreva o motivo da consulta...");
+  container.appendChild(firstStep);
+
+  const secondStep = createClinicalStep(1, "Etapa 2 — Informações clínicas");
+  addClinicalField(secondStep, "hda", "História da Doença Atual (HDA)", "Descreva a história da doença atual...");
+  addClinicalField(secondStep, "sinais-vitais", "Sinais vitais", "Informe os sinais vitais...");
+  addClinicalField(secondStep, "exames-lab", "Exames laboratoriais", "Informe os exames laboratoriais...");
+  addInfoPicker(secondStep);
+  container.appendChild(secondStep);
+}
+
+function addAdditionalStep() {
+  const stepIndex = nextStepId++;
+  const stepEl = createClinicalStep(stepIndex, `Etapa ${stepIndex + 1}`, true);
+  addInfoPicker(stepEl);
+  document.getElementById("steps-container").appendChild(stepEl);
+}
+
+function createClinicalStep(stepIndex, title, removable = false) {
   const stepEl = document.createElement("div");
   stepEl.className = "dynamic-step-item";
   stepEl.dataset.index = stepIndex;
   stepEl.innerHTML = `
     <div class="dynamic-step-header">
-      <input type="text" class="dynamic-step-title" value="Etapa ${stepIndex + 1}" placeholder="Título da etapa">
-      ${stepIndex > 0 ? '<button type="button" class="btn btn-ghost btn-sm btn-remove-step">Remover</button>' : ''}
+      <input class="dynamic-step-title" value="${title}" aria-label="Título da fase" maxlength="100">
+      ${removable ? '<button type="button" class="btn btn-ghost btn-sm btn-remove-step">Remover fase</button>' : ""}
     </div>
-    <div class="clinical-fields">
-      <div class="clinical-field-group">
-        <input type="checkbox" id="field-queixa-${stepIndex}">
-        <div class="field">
-          <label for="field-queixa-value-${stepIndex}">Queixa Principal</label>
-          <textarea id="field-queixa-value-${stepIndex}" rows="2"></textarea>
-        </div>
-      </div>
-      <div class="clinical-field-group">
-        <input type="checkbox" id="field-hda-${stepIndex}">
-        <div class="field">
-          <label for="field-hda-value-${stepIndex}">História da Doença Atual</label>
-          <textarea id="field-hda-value-${stepIndex}" rows="3"></textarea>
-        </div>
-      </div>
-      <div class="clinical-field-group">
-        <input type="checkbox" id="field-antecedentes-${stepIndex}">
-        <div class="field">
-          <label for="field-antecedentes-value-${stepIndex}">Antecedentes</label>
-          <textarea id="field-antecedentes-value-${stepIndex}" rows="2"></textarea>
-        </div>
-      </div>
-      <div class="clinical-field-group">
-        <input type="checkbox" id="field-medicamentos-${stepIndex}">
-        <div class="field">
-          <label for="field-medicamentos-value-${stepIndex}">Medicamentos</label>
-          <textarea id="field-medicamentos-value-${stepIndex}" rows="2"></textarea>
-        </div>
-      </div>
-      <div class="clinical-field-group">
-        <input type="checkbox" id="field-exame-fisico-${stepIndex}">
-        <div class="field">
-          <label for="field-exame-fisico-value-${stepIndex}">Exame Físico</label>
-          <textarea id="field-exame-fisico-value-${stepIndex}" rows="3"></textarea>
-        </div>
-      </div>
-      <div class="clinical-field-group">
-        <input type="checkbox" id="field-sinais-vitais-${stepIndex}">
-        <div class="field">
-          <label for="field-sinais-vitais-value-${stepIndex}">Sinais Vitais</label>
-          <textarea id="field-sinais-vitais-value-${stepIndex}" rows="2"></textarea>
-        </div>
-      </div>
-      <div class="clinical-field-group">
-        <input type="checkbox" id="field-exames-lab-${stepIndex}">
-        <div class="field">
-          <label for="field-exames-lab-value-${stepIndex}">Exames Laboratoriais</label>
-          <textarea id="field-exames-lab-value-${stepIndex}" rows="3"></textarea>
-        </div>
-      </div>
-      <div class="clinical-field-group">
-        <input type="checkbox" id="field-evolucao-${stepIndex}">
-        <div class="field">
-          <label for="field-evolucao-value-${stepIndex}">Evolução</label>
-          <textarea id="field-evolucao-value-${stepIndex}" rows="2"></textarea>
-        </div>
-      </div>
-    </div>
+    <div class="clinical-fields" data-clinical-fields></div>
     <div class="field step-image-field">
       <label for="step-image-${stepIndex}">Imagem clínica (opcional)</label>
       <label class="image-anonymization-check" for="step-image-consent-${stepIndex}">
@@ -174,21 +136,110 @@ function addStep() {
       <textarea id="step-hint-${stepIndex}" rows="2" placeholder="Dica para ajudar na resolução desta etapa"></textarea>
     </div>
   `;
-
-  container.appendChild(stepEl);
   setupStepImage(stepEl, stepIndex);
 
-  if (stepIndex > 0) {
+  if (removable) {
     stepEl.querySelector(".btn-remove-step").addEventListener("click", () => {
       const alreadyUploaded = Boolean(stepEl.dataset.imageUrl);
       if (stepEl.dataset.imagePreviewUrl) URL.revokeObjectURL(stepEl.dataset.imagePreviewUrl);
       stepEl.remove();
       if (alreadyUploaded) {
-        toast("A imagem removida do formulário continua hospedada publicamente no ImgBB.", { type: "warning" });
+        toast("A imagem removida da fase continua hospedada publicamente no ImgBB.", { type: "warning" });
       }
     });
   }
+
+  return stepEl;
 }
+
+function addClinicalField(stepEl, key, labelText, placeholder = "", removable = false) {
+  const field = document.createElement("div");
+  field.className = "field clinical-extra-field";
+  field.dataset.fieldKey = key;
+
+  const label = document.createElement("label");
+  const input = document.createElement("textarea");
+  input.id = `clinical-field-${nextClinicalFieldId++}`;
+  input.rows = key === "hda" || key === "exames-lab" || key === "exame-fisico" ? 3 : 2;
+  input.dataset.clinicalField = key;
+  input.placeholder = placeholder;
+  label.htmlFor = input.id;
+  label.textContent = labelText;
+  if (key === "queixa") {
+    const requiredMark = document.createElement("span");
+    requiredMark.className = "required";
+    requiredMark.textContent = " *";
+    label.appendChild(requiredMark);
+  }
+  field.appendChild(label);
+  field.appendChild(input);
+
+  if (key === "outras-informacoes") {
+    const hint = document.createElement("span");
+    hint.className = "field-hint";
+    hint.textContent = "Ex.: gestação ou outra condição especial relevante.";
+    field.appendChild(hint);
+  }
+
+  if (removable) {
+    const removeButton = document.createElement("button");
+    removeButton.type = "button";
+    removeButton.className = "btn btn-ghost btn-sm remove-clinical-field";
+    removeButton.textContent = "Remover";
+    removeButton.addEventListener("click", () => {
+      const option = stepEl.querySelector(`[data-info-option="${key}"]`);
+      if (option) option.hidden = false;
+      field.remove();
+    });
+    field.appendChild(removeButton);
+  }
+
+  stepEl.querySelector("[data-clinical-fields]").appendChild(field);
+  return field;
+}
+
+function addInfoPicker(stepEl) {
+  const picker = document.createElement("div");
+  picker.className = "add-info-picker";
+  picker.innerHTML = `
+    <button type="button" class="btn btn-secondary btn-add-info" aria-expanded="false">
+      + Adicionar informação
+    </button>
+    <div class="add-info-options" hidden>
+      <p class="field-hint">Escolha uma informação para incluir:</p>
+      <div class="add-info-options-list"></div>
+    </div>
+  `;
+
+  const toggle = picker.querySelector(".btn-add-info");
+  const optionsPanel = picker.querySelector(".add-info-options");
+  const optionsList = picker.querySelector(".add-info-options-list");
+  CLINICAL_FIELD_OPTIONS.forEach(({ key, label }) => {
+    const option = document.createElement("button");
+    option.type = "button";
+    option.className = "btn btn-ghost btn-sm";
+    option.dataset.infoOption = key;
+    option.textContent = label;
+    const alreadyAdded = stepEl.querySelector(`[data-field-key="${key}"]`);
+    option.hidden = Boolean(alreadyAdded);
+    option.addEventListener("click", () => {
+      if (stepEl.querySelector(`[data-field-key="${key}"]`)) return;
+      addClinicalField(stepEl, key, label, `Informe ${label.toLowerCase()}...`, true);
+      option.hidden = true;
+      optionsPanel.hidden = true;
+      toggle.setAttribute("aria-expanded", "false");
+    });
+    optionsList.appendChild(option);
+  });
+
+  toggle.addEventListener("click", () => {
+    optionsPanel.hidden = !optionsPanel.hidden;
+    toggle.setAttribute("aria-expanded", String(!optionsPanel.hidden));
+  });
+  stepEl.querySelector("[data-clinical-fields]").after(picker);
+}
+
+document.getElementById("add-step-btn").addEventListener("click", addAdditionalStep);
 
 function setupStepImage(stepEl, stepIndex) {
   const consent = stepEl.querySelector(`#step-image-consent-${stepIndex}`);
@@ -307,8 +358,6 @@ async function uploadPendingStepImages(caseData) {
   }
 }
 
-document.getElementById("add-step-btn").addEventListener("click", addStep);
-
 // Navegação do wizard
 function goToStep(step) {
   document.querySelectorAll(".wizard-section").forEach(s => s.classList.remove("is-active"));
@@ -372,16 +421,11 @@ function collectFormData(publish = false) {
   const collectedSteps = [];
   document.querySelectorAll(".dynamic-step-item").forEach((stepEl) => {
     const index = Number(stepEl.dataset.index);
-    const title = stepEl.querySelector(".dynamic-step-title").value || `Etapa ${index + 1}`;
+    const title = stepEl.querySelector(".dynamic-step-title").value.trim() || `Etapa ${index + 1}`;
     const fields = {};
-
-    const fieldNames = ["queixa", "hda", "antecedentes", "medicamentos", "exame-fisico", "sinais-vitais", "exames-lab", "evolucao"];
-    fieldNames.forEach(name => {
-      const checkbox = document.getElementById(`field-${name}-${index}`);
-      const value = document.getElementById(`field-${name}-value-${index}`).value.trim();
-      if (checkbox.checked && value) {
-        fields[name] = value;
-      }
+    stepEl.querySelectorAll("textarea[data-clinical-field]").forEach((input) => {
+      const value = input.value.trim();
+      if (value) fields[input.dataset.clinicalField] = value;
     });
 
     const hint = document.getElementById(`step-hint-${index}`).value.trim();
@@ -397,6 +441,8 @@ function collectFormData(publish = false) {
   return {
     title: formData.get("title"),
     specialty: formData.get("specialty"),
+    specialConditions: formData.get("specialConditions").trim(),
+    scenario: formData.get("scenario"),
     tags,
     difficulty: parseInt(formData.get("difficulty")),
     visibility: formData.get("visibility"),
@@ -411,13 +457,61 @@ function collectFormData(publish = false) {
 }
 
 // Publicar
-document.getElementById("case-form").addEventListener("submit", async (e) => {
-  e.preventDefault();
+const caseForm = document.getElementById("case-form");
+caseForm.noValidate = true;
+
+function validatePublishForm() {
+  const title = document.getElementById("title");
+  const specialty = document.getElementById("specialty");
+  const scenario = document.getElementById("scenario");
+  const difficulty = document.querySelector('input[name="difficulty"]:checked');
+  const complaint = document.querySelector('[data-clinical-field="queixa"]');
+  const diagnosis = document.getElementById("diagnosis");
+
+  const requiredFields = [
+    { field: title, step: 1, message: "Informe o título do caso." },
+    { field: specialty, step: 1, message: "Selecione uma especialidade." },
+    { field: scenario, step: 1, message: "Selecione o cenário de atendimento." },
+    { field: difficulty, step: 1, message: "Selecione o nível de dificuldade." },
+    { field: complaint, step: 2, message: "Preencha a queixa principal." },
+    { field: diagnosis, step: 3, message: "Informe o diagnóstico do caso." }
+  ];
+
+  for (const { field, step, message } of requiredFields) {
+    if (!field || !field.value?.trim()) {
+      goToStep(step);
+      field?.focus();
+      toast(message, { type: "warning" });
+      return false;
+    }
+  }
+
+  const emptyAdditionalStep = [...document.querySelectorAll(".dynamic-step-item")].slice(2).find(stepEl => {
+    const hasClinicalInfo = [...stepEl.querySelectorAll("textarea[data-clinical-field]")]
+      .some(input => input.value.trim());
+    const hasHint = stepEl.querySelector("textarea[id^='step-hint-']").value.trim();
+    return !hasClinicalInfo && !hasHint && !stepEl.dataset.imageUrl && !pendingStepImages.has(stepEl);
+  });
+  if (emptyAdditionalStep) {
+    goToStep(2);
+    emptyAdditionalStep.scrollIntoView({ behavior: "smooth", block: "center" });
+    toast("Preencha uma informação ou remova a fase vazia.", { type: "warning" });
+    return false;
+  }
 
   if (!document.getElementById("anonymization-check").checked) {
+    goToStep(4);
     toast("Você precisa confirmar a anonimização do caso.", { type: "warning" });
-    return;
+    return false;
   }
+
+  return true;
+}
+
+caseForm.addEventListener("submit", async (e) => {
+  e.preventDefault();
+
+  if (!validatePublishForm()) return;
 
   const btn = document.getElementById("publish-btn");
   btn.disabled = true;

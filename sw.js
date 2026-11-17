@@ -1,4 +1,4 @@
-const VERSION = 'v1.0.6';
+const VERSION = 'v1.0.7';
 const CACHE_NAME = `lidmed-hub-${VERSION}`;
 
 // Arquivos para cache offline

@@ -10,6 +10,7 @@ import {
   query,
   where,
   orderBy,
+  limit,
   serverTimestamp,
   writeBatch
 } from "./firebase.js";
@@ -58,9 +59,32 @@ export async function getActiveAttempt(userId, caseId) {
 }
 
 /**
+ * Busca tentativas concluídas do usuário para um caso.
+ */
+export async function getCaseAttempts(userId, caseId) {
+  const q = query(
+    collection(db, "attempts"),
+    where("userId", "==", userId),
+    where("caseId", "==", caseId),
+    where("status", "==", "solved")
+  );
+  const snap = await getDocs(q);
+  return snap.docs
+    .map(document => ({ id: document.id, ...document.data() }))
+    .sort((a, b) => getTimestampMillis(b.completedAt) - getTimestampMillis(a.completedAt));
+}
+
+function getTimestampMillis(timestamp) {
+  if (typeof timestamp?.toMillis === "function") return timestamp.toMillis();
+  if (typeof timestamp?.toDate === "function") return timestamp.toDate().getTime();
+  const parsed = new Date(timestamp || 0).getTime();
+  return Number.isFinite(parsed) ? parsed : 0;
+}
+
+/**
  * Registra uma hipótese.
  */
-export async function submitHypothesis(attemptId, hypothesis, stepIndex, isCorrect) {
+export async function submitHypothesis(attemptId, hypothesis, stepIndex, isCorrect, justification = "") {
   const attemptRef = doc(db, "attempts", attemptId);
   const attemptDoc = await getDoc(attemptRef);
 
@@ -71,6 +95,7 @@ export async function submitHypothesis(attemptId, hypothesis, stepIndex, isCorre
   const hypotheses = attemptDoc.data().hypotheses || [];
   hypotheses.push({
     text: hypothesis,
+    justification,
     correct: isCorrect,
     stepIndex,
     submittedAt: new Date()
@@ -233,11 +258,12 @@ export async function getUserAttempts(userId, limitCount = 50) {
   const q = query(
     collection(db, "attempts"),
     where("userId", "==", userId),
-    orderBy("completedAt", "desc")
+    orderBy("completedAt", "desc"),
+    limit(limitCount)
   );
 
   const snap = await getDocs(q);
-  return snap.docs.slice(0, limitCount).map(doc => ({ id: doc.id, ...doc.data() }));
+  return snap.docs.map(document => ({ id: document.id, ...document.data() }));
 }
 
 /**

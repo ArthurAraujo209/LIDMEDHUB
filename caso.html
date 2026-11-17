@@ -51,7 +51,7 @@
             <h1 id="case-title">Carregando...</h1>
             <div class="case-meta-row" id="case-meta"></div>
           </div>
-          <button id="favorite-btn" class="btn btn-ghost">♡</button>
+          <button id="favorite-btn" class="btn btn-ghost" aria-label="Adicionar aos favoritos">♡</button>
         </div>
 
         <div class="case-progress">
@@ -64,6 +64,85 @@
           </div>
         </div>
       </div>
+
+      <section id="result-view" class="case-result" hidden aria-labelledby="result-title">
+        <div class="case-result-heading">
+          <div>
+            <p class="badge badge-primary">Caso concluído</p>
+            <h2 id="result-title">Resultado da tentativa</h2>
+            <p id="result-score-label" class="text-sm text-subtle"></p>
+          </div>
+          <div class="case-result-score">
+            <strong id="result-score">—</strong>
+            <span>pontos</span>
+          </div>
+        </div>
+        <p class="case-result-score-note text-sm text-subtle">
+          A pontuação considera as dicas usadas; a avaliação do diagnóstico aparece separadamente.
+        </p>
+        <div class="case-result-stats">
+          <div><span>Dicas usadas</span><strong id="result-hints">—</strong></div>
+          <div><span>Tempo</span><strong id="result-time">—</strong></div>
+          <div><span>Concluído em</span><strong id="result-date">—</strong></div>
+        </div>
+        <div class="case-result-comparison">
+          <article>
+            <h3>Sua resposta</h3>
+            <p id="result-answer">—</p>
+            <span id="result-answer-status" class="badge"></span>
+            <h4>Sua justificativa</h4>
+            <p id="result-justification">—</p>
+          </article>
+          <article>
+            <h3>Resposta esperada pelo criador</h3>
+            <p id="result-correct-answer">—</p>
+            <div id="result-conduct-section" hidden>
+              <h4>Conduta / manejo clínico</h4>
+              <p id="result-conduct"></p>
+            </div>
+            <div id="result-explanation-section" hidden>
+              <h4>Explicação acadêmica</h4>
+              <p id="result-explanation"></p>
+            </div>
+          </article>
+        </div>
+        <div id="previous-answers" class="case-previous-answers" hidden>
+          <h3>Respostas enviadas durante o caso</h3>
+          <div id="previous-answers-list"></div>
+        </div>
+        <section class="case-community" aria-labelledby="community-title">
+          <div class="case-community-heading">
+            <h3 id="community-title">Avaliações da comunidade</h3>
+            <p id="community-summary" class="text-sm text-subtle"></p>
+          </div>
+          <div id="community-ratings" class="community-ratings"></div>
+          <form id="rating-form" class="rating-form">
+            <h4 id="rating-form-title">Avalie este caso</h4>
+            <div class="field">
+              <label for="rating-stars">Sua nota</label>
+              <select id="rating-stars" required>
+                <option value="">Selecione de 1 a 5 estrelas</option>
+                <option value="5">★★★★★ — Excelente</option>
+                <option value="4">★★★★☆ — Muito bom</option>
+                <option value="3">★★★☆☆ — Bom</option>
+                <option value="2">★★☆☆☆ — Regular</option>
+                <option value="1">★☆☆☆☆ — Precisa melhorar</option>
+              </select>
+            </div>
+            <div class="field">
+              <label for="rating-comment">Comentário <span class="text-subtle">(opcional)</span></label>
+              <textarea id="rating-comment" rows="3" maxlength="1000"
+                        placeholder="Compartilhe o que achou do caso..."></textarea>
+            </div>
+            <p id="rating-feedback" class="text-sm text-subtle" role="status" aria-live="polite"></p>
+            <button type="submit" class="btn btn-primary" id="submit-rating-btn">Enviar avaliação</button>
+          </form>
+        </section>
+        <div class="case-result-actions">
+          <a href="/casoteca.html" class="btn btn-secondary">Voltar à Casoteca</a>
+          <button type="button" class="btn btn-primary" id="redo-case-btn">Refazer caso</button>
+        </div>
+      </section>
 
       <!-- Steps Container -->
       <div id="steps-container"></div>
@@ -81,6 +160,11 @@
             <div id="hypothesis-input-container">
               <!-- Será preenchido dinamicamente -->
             </div>
+            <div class="field">
+              <label for="hypothesis-justification">Justifique sua resposta <span class="required">*</span></label>
+              <textarea id="hypothesis-justification" rows="3"
+                        placeholder="Explique o raciocínio que levou a esse diagnóstico..."></textarea>
+            </div>
 
             <div class="hypothesis-actions">
               <button type="button" class="btn btn-secondary" id="next-step-btn">
@@ -90,7 +174,7 @@
                 💡 Solicitar dica (-15 pts)
               </button>
               <button type="submit" class="btn btn-primary" id="submit-hypothesis-btn">
-                Submeter hipótese
+                Enviar diagnóstico e justificativa
               </button>
               <button type="button" class="btn btn-success" id="finish-btn" style="display: none;">
                 Encerrar caso
@@ -101,31 +185,6 @@
       </div>
     </div>
   </main>
-
-  <!-- Completion Modal -->
-  <div id="completion-modal" class="completion-modal" style="display: none;">
-    <div class="completion-content">
-      <div class="completion-icon">🎉</div>
-      <div class="completion-score" id="final-score">100</div>
-      <div class="completion-message" id="completion-message">Parabéns!</div>
-
-      <div class="completion-stats">
-        <div>
-          <div class="completion-stat-label">Dicas usadas</div>
-          <div class="completion-stat-value" id="hints-used">0</div>
-        </div>
-        <div>
-          <div class="completion-stat-label">Tempo</div>
-          <div class="completion-stat-value" id="time-taken">0min</div>
-        </div>
-      </div>
-
-      <div class="completion-actions">
-        <a href="/casoteca.html" class="btn btn-secondary">Voltar à Casoteca</a>
-        <button id="rate-btn" class="btn btn-primary">Avaliar caso</button>
-      </div>
-    </div>
-  </div>
 
   <script type="module" src="/js/pages/caso.js"></script>
 </body>

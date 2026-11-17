@@ -42,7 +42,7 @@
       <div class="wizard-steps">
         <div class="wizard-step is-active" data-step="1">
           <span class="wizard-step-number">1</span>
-          <span class="wizard-step-label">Metadados</span>
+          <span class="wizard-step-label">Dados gerais</span>
         </div>
         <div class="wizard-step" data-step="2">
           <span class="wizard-step-number">2</span>
@@ -59,10 +59,10 @@
       </div>
 
       <form id="case-form">
-        <!-- Step 1: Metadados -->
+        <!-- Step 1: Dados gerais -->
         <div class="wizard-section is-active" data-section="1">
           <div class="wizard-content">
-            <h3>Metadados do Caso</h3>
+            <h3>Dados Gerais do Caso</h3>
 
             <div class="field">
               <label for="title">Título do caso <span class="required">*</span></label>
@@ -76,6 +76,25 @@
                 <option value="">Selecione...</option>
               </select>
               <span class="field-error" data-error-for="specialty"></span>
+            </div>
+
+            <div class="field">
+              <label for="special-conditions">Condições especiais do paciente <span class="text-subtle">(opcional)</span></label>
+              <textarea id="special-conditions" name="specialConditions" rows="2" maxlength="500"
+                        placeholder="Ex.: gestante de 24 semanas, imunossuprimido"></textarea>
+              <span class="field-hint">Inclua apenas condições relevantes para o caso, sem dados que identifiquem o paciente.</span>
+            </div>
+
+            <div class="field">
+              <label for="scenario">Cenário de atendimento <span class="required">*</span></label>
+              <select id="scenario" name="scenario" required>
+                <option value="">Selecione...</option>
+                <option value="Atenção primária (UBS)">Atenção primária (UBS)</option>
+                <option value="Ambulatório">Ambulatório</option>
+                <option value="Pronto atendimento">Pronto atendimento</option>
+                <option value="Emergência">Emergência</option>
+                <option value="Internação hospitalar">Internação hospitalar</option>
+              </select>
             </div>
 
             <div class="field">
@@ -131,15 +150,14 @@
         <!-- Step 2: Etapas -->
         <div class="wizard-section" data-section="2">
           <div class="wizard-content">
-            <h3>Etapas do Caso</h3>
+            <h3>Informações clínicas</h3>
             <p class="field-hint" style="margin-bottom: var(--space-4);">
-              Adicione as informações que serão reveladas progressivamente ao resolver o caso.
+              A queixa principal será apresentada primeiro. Na etapa seguinte, HDA, sinais vitais e exames laboratoriais aparecem por padrão. Use “Adicionar informação” para incluir outros dados e “Adicionar fase” para organizar mais informações em etapas progressivas.
             </p>
 
             <div id="steps-container" class="dynamic-steps"></div>
-
             <button type="button" class="btn btn-secondary btn-block btn-add-step" id="add-step-btn">
-              + Adicionar Etapa
+              + Adicionar fase
             </button>
           </div>
         </div>
@@ -150,29 +168,30 @@
             <h3>Encerramento do Caso</h3>
 
             <div class="field">
-              <label for="diagnosis">Diagnóstico <span class="required">*</span></label>
+              <label for="diagnosis">Diagnóstico correto do caso <span class="required">*</span></label>
               <textarea id="diagnosis" name="diagnosis" rows="3" required placeholder="Diagnóstico final do caso"></textarea>
               <span class="field-error" data-error-for="diagnosis"></span>
             </div>
 
             <div class="field">
-              <label for="diagnosisKeywords">Palavras-chave do diagnóstico (pressione Enter)</label>
+              <label for="diagnosis-keywords-input">Outras respostas diagnósticas aceitas (pressione Enter)</label>
               <div class="tags-input-wrapper" id="diagnosis-keywords-wrapper">
-                <input type="text" class="tags-input" id="diagnosis-keywords-input" placeholder="Digite uma palavra...">
+                <input type="text" class="tags-input" id="diagnosis-keywords-input" placeholder="Ex: pneumonia bacteriana">
               </div>
-              <span class="field-hint">Palavras aceitas como hipótese correta. Ex: pneumonia, pneumonia bacteriana</span>
+              <span class="field-hint">O diagnóstico acima já será aceito. Adicione aqui sinônimos ou outras respostas que também devem ser consideradas corretas.</span>
             </div>
 
             <div class="field">
-              <label for="optionSet">Opções de hipótese (pressione Enter, opcional)</label>
+              <label for="option-set-input">Alternativas para o participante escolher (opcional)</label>
               <div class="tags-input-wrapper" id="option-set-wrapper">
-                <input type="text" class="tags-input" id="option-set-input" placeholder="Digite uma opção...">
+                <input type="text" class="tags-input" id="option-set-input" placeholder="Ex: pneumonia viral">
               </div>
-              <span class="field-hint">Se preenchido, mostra botões em vez de campo livre</span>
+              <span class="field-hint"><b>Sem alternativas</b>, a pessoa digita o diagnóstico. <br>
+                 <b>Com alternativas</b>, ela escolhe uma delas. Você precisa incluir a(s) resposta(s) correta(s) no "Outras respostas diagnósticas aceitas".</span>
             </div>
 
             <div class="field">
-              <label for="conduct">Conduta</label>
+              <label for="conduct">Conduta / manejo clínico <span class="text-subtle">(opcional)</span></label>
               <textarea id="conduct" name="conduct" rows="4" placeholder="Conduta médica adotada"></textarea>
             </div>
 

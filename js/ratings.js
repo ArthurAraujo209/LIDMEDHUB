@@ -8,7 +8,6 @@ import {
   getDocs,
   query,
   where,
-  orderBy,
   serverTimestamp,
   runTransaction
 } from "./firebase.js";
@@ -35,7 +34,7 @@ export async function rateCase(userId, caseId, stars, comment = "") {
   const oldStars = isUpdate ? ratingSnap.data().stars : 0;
 
   // Usa transaction para atualizar média de forma consistente
-  await runTransaction(db, async (transaction) => {
+  const updatedAggregate = await runTransaction(db, async (transaction) => {
     const caseRef = doc(db, "cases", caseId);
     const caseDoc = await transaction.get(caseRef);
 
@@ -77,7 +76,9 @@ export async function rateCase(userId, caseId, stars, comment = "") {
       "aggregate.ratingCount": newCount,
       updatedAt: serverTimestamp()
     });
+    return { ratingAvg: newAvg, ratingCount: newCount };
   });
+  return updatedAggregate;
 }
 
 /**
@@ -95,12 +96,25 @@ export async function getUserRating(userId, caseId) {
 export async function getCaseRatings(caseId, limitCount = 20) {
   const q = query(
     collection(db, "ratings"),
-    where("caseId", "==", caseId),
-    orderBy("createdAt", "desc")
+    where("caseId", "==", caseId)
   );
 
   const snap = await getDocs(q);
-  return snap.docs.slice(0, limitCount).map(doc => ({ id: doc.id, ...doc.data() }));
+  return snap.docs
+    .map(document => ({ id: document.id, ...document.data() }))
+    .sort((a, b) => {
+      const starDifference = (Number(b.stars) || 0) - (Number(a.stars) || 0);
+      if (starDifference) return starDifference;
+      return getTimestampMillis(b.createdAt) - getTimestampMillis(a.createdAt);
+    })
+    .slice(0, limitCount);
+}
+
+function getTimestampMillis(timestamp) {
+  if (typeof timestamp?.toMillis === "function") return timestamp.toMillis();
+  if (typeof timestamp?.toDate === "function") return timestamp.toDate().getTime();
+  const parsed = new Date(timestamp || 0).getTime();
+  return Number.isFinite(parsed) ? parsed : 0;
 }
 
 /**

@@ -32,9 +32,6 @@
         <span>LIDMED HUB</span>
       </a>
       <div class="row dashboard-header-actions">
-        <a href="/meu-perfil.html" class="btn btn-ghost btn-sm" id="profile-link" aria-label="Abrir meu perfil">
-          <span class="dashboard-profile-name" id="public-name">—</span>
-        </a>
         <button id="logout-btn" class="btn btn-secondary btn-sm">Sair</button>
       </div>
     </div>
@@ -169,7 +166,6 @@
         if (!ctx) return;
         const { user, profile } = ctx;
 
-        document.getElementById("public-name").textContent = profile.publicName || "—";
         const displayName = profile.publicName || profile.displayName || "usuário";
         const punctuation = /[.!?]$/.test(displayName) ? "" : ".";
         document.getElementById("welcome-title").textContent =
